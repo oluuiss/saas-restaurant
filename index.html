@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lumenu — Cardápio digital, delivery e reservas para restaurantes</title>
+  <meta name="description" content="Lumenu reúne cardápio digital, delivery próprio, reservas de mesa, email marketing e promoções em uma plataforma simples e bonita para restaurantes.">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Lumenu — Seu restaurante, sempre cheio.">
+  <meta property="og:description" content="Cardápio digital, delivery próprio, reservas de mesa, email marketing e promoções em um só lugar.">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+  <!-- Ícones -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-logo" viewBox="0 0 24 24"><path d="M4 16.5a8 8 0 0 1 16 0"/><path d="M2.5 19.5h19"/><path d="M12 7v1.5"/><circle cx="12" cy="5.6" r="1.3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7 7 17"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 19.5v-15A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5A1.5 1.5 0 0 0 6.5 21H19"/><path d="M9 7.5h6M9 11h4"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1.2 11.1A2 2 0 0 1 15.8 21H8.2a2 2 0 0 1-2-1.9z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7.5 8 5.5 8-5.5"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12.6V5A1.5 1.5 0 0 1 5 3.5h7.6l8.4 8.4-9 9z"/><circle cx="8" cy="8" r="1.5"/></symbol>
+    <symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M11 17.5h2"/></symbol>
+    <symbol id="i-smartphone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18h2"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8.5 21h7M12 17v4"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.2"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1.2"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1.2"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 18.5v2M18.5 14h2"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7h2A4.5 4.5 0 0 0 21 10.7C21 6.4 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.1"/><circle cx="10.5" cy="7" r="1.1"/><circle cx="15" cy="7.5" r="1.1"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.2a6.5 6.5 0 0 1 3.5 5.8"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M21.5 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.6 4.2 2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.6 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><path d="M17.5 6.5h.01"/></symbol>
+    <symbol id="i-linkedin" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="4.5"/><path d="M8 10.5v6M8 7.4v.01M11.8 16.5v-6M11.8 13.3a2.6 2.6 0 0 1 5.2 0v3.2"/></symbol>
+    <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M3.2 20.8l1.3-4.3A9 9 0 1 1 8 19.6z"/><path fill="currentColor" stroke="none" d="M8.7 7.9c.2-.5.5-.6.8-.6h.6c.2 0 .4.1.5.4l.8 1.8c.1.3 0 .5-.1.7l-.5.6c-.1.1-.2.4 0 .6.6 1 1.4 1.8 2.4 2.4.2.1.4.1.6 0l.6-.6c.2-.2.4-.2.7-.1l1.8.8c.3.1.4.3.4.5v.6c0 .3-.1.6-.6.9-.7.4-1.9.5-3.5-.3a9.6 9.6 0 0 1-4.1-4.1c-.8-1.6-.7-2.8-.4-3.6z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+    <symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 21.5c-3.7 0-6.3-2.6-6.3-6.1 0-3.4 2.6-5.2 3.7-8.5.2-.7 1-.9 1.4-.3.9 1.1 1.3 2.4 1.2 3.7 1-.6 1.8-1.7 2-3 .1-.6.8-.9 1.3-.4 2 1.9 3.3 4.6 3.3 8.3 0 3.6-2.8 6.3-6.6 6.3z"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></symbol>
+    <symbol id="i-window" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18"/><path d="M6.5 6.5h.01M9 6.5h.01"/></symbol>
+  </svg>
+
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- Navegação -->
+  <header class="site-header">
+    <nav class="nav container" aria-label="Principal">
+      <a class="brand" href="#topo" aria-label="Lumenu — início">
+        <span class="brand-mark"><svg class="i"><use href="#i-logo"/></svg></span>
+        Lumenu
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#planos">Planos</a></li>
+        <li><a href="#demo">Demonstração</a></li>
+        <li><a href="#recursos">Recursos</a></li>
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#faq">Dúvidas</a></li>
+        <li><a href="#contato">Contato</a></li>
+      </ul>
+
+      <div class="nav-cta">
+        <a class="btn btn-ghost btn-sm" href="/entrar">Entrar</a>
+        <a class="btn btn-primary btn-sm" href="#planos">Ver planos</a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-mobile" aria-label="Abrir menu">
+          <span class="bars"><span></span><span></span></span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="mobile-menu" id="menu-mobile">
+      <ul>
+        <li><a href="#planos">Planos</a></li>
+        <li><a href="#demo">Demonstração</a></li>
+        <li><a href="#recursos">Recursos</a></li>
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#faq">Dúvidas</a></li>
+        <li><a href="#contato">Contato</a></li>
+      </ul>
+      <a class="btn btn-primary btn-block" href="#contato">Fale com a gente</a>
+      <a class="btn btn-ghost btn-block" href="/entrar" style="margin-top:10px">Entrar no painel</a>
+    </div>
+  </header>
+
+  <main id="conteudo">
+
+    <!-- Hero -->
+    <section class="hero" id="topo">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="badge-pill reveal"><span class="tag">Novo</span> Cardápio, delivery e reservas em um só lugar</span>
+
+          <h1 class="hero-title reveal" style="--d:.06s">Seu restaurante,<br><span class="grad">sempre cheio.</span></h1>
+
+          <p class="hero-lead reveal" style="--d:.12s">
+            O Lumenu transforma o seu cardápio em uma vitrine que vende: delivery próprio,
+            reservas de mesa, email marketing e promoções — tudo com a cara do seu restaurante
+            e sem complicação.
+          </p>
+
+          <div class="reveal" style="--d:.18s">
+            <form class="email-capture" data-lead-form data-origin="Hero" data-status="status-hero">
+              <label class="sr-only" for="email-hero">Seu email</label>
+              <input id="email-hero" type="email" name="email" placeholder="Deixe seu melhor email" autocomplete="email" required>
+              <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <button class="btn btn-primary" type="submit">Quero conhecer</button>
+            </form>
+            <p class="form-status" id="status-hero" role="status" aria-live="polite">Sem spam. Só uma apresentação do Lumenu para o seu restaurante.</p>
+
+            <div class="hero-actions">
+              <a class="btn btn-secondary" href="#contato">
+                <svg class="i i-sm"><use href="#i-send"/></svg>
+                Entre em contato
+              </a>
+              <a class="link-arrow" href="#demo">Ver demonstração <svg class="i i-sm"><use href="#i-chevron"/></svg></a>
+            </div>
+          </div>
+
+          <ul class="hero-points reveal" style="--d:.24s">
+            <li>
+              <span class="ico-chip"><svg class="i"><use href="#i-bag"/></svg></span>
+              <span><b>Delivery próprio</b>Pedidos pelo seu link, sem marketplace no meio.</span>
+            </li>
+            <li>
+              <span class="ico-chip"><svg class="i"><use href="#i-calendar"/></svg></span>
+              <span><b>Reservas 24 horas</b>Seu salão recebe reservas mesmo com a casa fechada.</span>
+            </li>
+            <li>
+              <span class="ico-chip"><svg class="i"><use href="#i-mail"/></svg></span>
+              <span><b>Clientes que voltam</b>Email e promoções para lotar os dias mais fracos.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="hero-visual reveal" style="--d:.15s" aria-hidden="true">
+          <div class="glow"></div>
+
+          <div class="iphone">
+            <div class="iphone-screen">
+              <div class="island"></div>
+              <div class="ios-status">
+                <span>9:41</span>
+                <span class="icons">
+                  <svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+                  <svg viewBox="0 0 16 12"><path d="M8 2.6c2.4 0 4.5.9 6.1 2.4l1.3-1.4A10.6 10.6 0 0 0 8 .6C5.1.6 2.5 1.7.6 3.6L1.9 5A8.6 8.6 0 0 1 8 2.6zm0 3.9c1.4 0 2.6.5 3.5 1.4l1.3-1.4A6.8 6.8 0 0 0 8 4.5c-1.8 0-3.5.7-4.8 2L4.5 8c.9-.9 2.1-1.5 3.5-1.5zM8 12l2.3-2.4a3.2 3.2 0 0 0-4.6 0z"/></svg>
+                  <svg viewBox="0 0 27 12"><rect x=".5" y=".5" width="23" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="8" rx="2"/><path d="M25 4v4c.8-.3 1.4-1.1 1.4-2S25.8 4.3 25 4z" opacity=".4"/></svg>
+                </span>
+              </div>
+
+              <div class="app">
+                <div class="app-top">
+                  <div>
+                    <p class="app-hello">Boa noite, Brasa Grill</p>
+                    <p class="app-title">Hoje</p>
+                  </div>
+                  <span class="app-avatar">BG</span>
+                </div>
+
+                <div class="app-stats">
+                  <div class="app-card">
+                    <span class="stat-label">Pedidos</span>
+                    <span class="stat-value">48</span>
+                    <span class="stat-trend">▲ 12% vs. ontem</span>
+                  </div>
+                  <div class="app-card">
+                    <span class="stat-label">Reservas</span>
+                    <span class="stat-value">17</span>
+                    <span class="stat-trend">▲ 5 novas</span>
+                  </div>
+                </div>
+
+                <div class="app-card">
+                  <div class="chart-head"><span>Vendas da semana</span><strong>R$ 18.420</strong></div>
+                  <div class="bars">
+                    <i style="--h:38%"></i><i style="--h:52%"></i><i style="--h:44%"></i><i style="--h:61%"></i><i style="--h:78%"></i><i style="--h:92%"></i><i class="on" style="--h:70%"></i>
+                  </div>
+                  <div class="bars-labels"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
+                </div>
+
+                <p class="app-section">Agora</p>
+                <ul class="app-list">
+                  <li>
+                    <span class="li-ico"><svg class="i"><use href="#i-bag"/></svg></span>
+                    <span class="li-body"><b>Pedido #1042</b><small>Costela 8h + batata rústica</small></span>
+                    <span class="status">Em preparo</span>
+                  </li>
+                  <li>
+                    <span class="li-ico"><svg class="i"><use href="#i-calendar"/></svg></span>
+                    <span class="li-body"><b>Mesa para 4</b><small>Hoje · 20:30 · Ana P.</small></span>
+                    <span class="status ok">Confirmada</span>
+                  </li>
+                  <li>
+                    <span class="li-ico"><svg class="i"><use href="#i-bag"/></svg></span>
+                    <span class="li-body"><b>Pedido #1041</b><small>2x Picanha na brasa</small></span>
+                    <span class="status go">A caminho</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+
+          <div class="notif notif-1">
+            <span class="n-ico"><svg class="i"><use href="#i-bag"/></svg></span>
+            <span class="n-body">
+              <span class="n-top"><span>LUMENU</span><span>agora</span></span>
+              <span class="n-title">Novo pedido · #1043</span>
+              <span class="n-text">2x Picanha na brasa · R$ 239,80</span>
+            </span>
+          </div>
+          <div class="notif notif-2">
+            <span class="n-ico"><svg class="i"><use href="#i-calendar"/></svg></span>
+            <span class="n-body">
+              <span class="n-top"><span>LUMENU</span><span>2 min</span></span>
+              <span class="n-title">Reserva confirmada</span>
+              <span class="n-text">Mesa para 6 · Sábado, 20:00</span>
+            </span>
+          </div>
+          <div class="notif notif-3">
+            <span class="n-ico"><svg class="i"><use href="#i-mail"/></svg></span>
+            <span class="n-body">
+              <span class="n-top"><span>LUMENU</span><span>15 min</span></span>
+              <span class="n-title">Campanha enviada</span>
+              <span class="n-text">Terça da Costela · 1.248 clientes</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Planos -->
+    <section class="section section-soft" id="planos">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow reveal">Planos</p>
+          <h2 class="section-title reveal" style="--d:.06s">Escolha como seu restaurante vai crescer.</h2>
+          <p class="section-sub reveal" style="--d:.12s">Preço fixo por mês, sem surpresa. Comece pelo que você precisa hoje e evolua quando quiser.</p>
+        </header>
+
+        <div class="plans">
+          <!-- Básico -->
+          <article class="plan reveal">
+            <div>
+              <h3 class="plan-name">Básico</h3>
+              <p class="plan-tag">Para quem vende por delivery</p>
+            </div>
+            <p class="plan-price" aria-label="R$ 59,90 por mês">
+              <span class="cur">R$</span><span class="int">59</span><span class="dec">,90</span><span class="per">/mês</span>
+            </p>
+            <p class="plan-desc">Seu cardápio online recebendo pedidos de delivery, pronto para divulgar.</p>
+            <div><a class="btn btn-secondary btn-block" href="#contato" data-plan="basico">Começar com o Básico</a></div>
+            <ul class="plan-features">
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Cardápio online</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Delivery</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Disparo de email</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Promoções</li>
+              <li class="off"><span class="ck"><svg class="i i-xs"><use href="#i-x"/></svg></span><span>Reserva de mesa<small>Disponível no Pro e no Ultimate</small></span></li>
+            </ul>
+          </article>
+
+          <!-- Pro -->
+          <article class="plan reveal" style="--d:.08s">
+            <div>
+              <h3 class="plan-name">Pro</h3>
+              <p class="plan-tag">Para quem recebe no salão</p>
+            </div>
+            <p class="plan-price" aria-label="R$ 99,90 por mês">
+              <span class="cur">R$</span><span class="int">99</span><span class="dec">,90</span><span class="per">/mês</span>
+            </p>
+            <p class="plan-desc">Reservas de mesa online para nunca mais perder cliente por telefone ocupado.</p>
+            <div><a class="btn btn-secondary btn-block" href="#contato" data-plan="pro">Começar com o Pro</a></div>
+            <ul class="plan-features">
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Cardápio online</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Reserva de mesa</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Disparo de email</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Promoções</li>
+              <li class="off"><span class="ck"><svg class="i i-xs"><use href="#i-x"/></svg></span><span>Delivery<small>Disponível no Básico e no Ultimate</small></span></li>
+            </ul>
+          </article>
+
+          <!-- Ultimate -->
+          <article class="plan plan-featured reveal" style="--d:.16s">
+            <span class="plan-ribbon">Mais completo</span>
+            <div>
+              <h3 class="plan-name">Ultimate</h3>
+              <p class="plan-tag">Delivery + salão</p>
+            </div>
+            <p class="plan-price" aria-label="R$ 149,90 por mês">
+              <span class="cur">R$</span><span class="int">149</span><span class="dec">,90</span><span class="per">/mês</span>
+            </p>
+            <p class="plan-desc">Tudo em um só lugar: delivery, reservas, email e promoções.</p>
+            <div><a class="btn btn-white btn-block" href="/assinar?plano=ultimate">Assinar o Ultimate</a></div>
+            <ul class="plan-features">
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Cardápio online</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Delivery</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Reserva de mesa</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Disparo de email</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Promoções</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="plans-custom">
+          <!-- Signature (tablet) -->
+          <article class="custom-card custom-signature reveal">
+            <p class="eyebrow">Sob consulta</p>
+            <h3 class="plan-name">Signature</h3>
+            <p class="plan-desc">Tudo do Ultimate + cardápio digital em tablets no seu restaurante. Uma experiência premium do pedido à conta.</p>
+            <ul class="plan-features">
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Tudo do plano Ultimate</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Cardápio digital no tablet, na mesa</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Orçamento conforme o tamanho da casa</li>
+            </ul>
+            <a class="btn btn-white" href="#contato" data-plan="signature">Solicitar orçamento <svg class="i i-sm"><use href="#i-arrow"/></svg></a>
+
+            <div class="tablet" aria-hidden="true">
+              <div class="tablet-screen">
+                <div class="tablet-head"><b>Brasa Grill · Mesa 12</b><span>Pedir</span></div>
+                <div class="tablet-grid">
+                  <i style="--c1:#ffb45c;--c2:#e8590c"></i>
+                  <i style="--c1:#ffd58a;--c2:#d97706"></i>
+                  <i style="--c1:#9be7a1;--c2:#2f9e44"></i>
+                  <i style="--c1:#ffc9a3;--c2:#c2410c"></i>
+                  <i style="--c1:#fde68a;--c2:#ca8a04"></i>
+                  <i style="--c1:#fca5a5;--c2:#b91c1c"></i>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- App próprio -->
+          <article class="custom-card custom-app reveal" style="--d:.08s">
+            <p class="eyebrow">Sob consulta</p>
+            <h3 class="plan-name">App próprio</h3>
+            <p class="plan-desc">Um aplicativo exclusivo, com a marca do seu restaurante, na tela do celular dos seus clientes.</p>
+            <ul class="plan-features">
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Identidade visual da sua marca</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Pensado para iOS e Android</li>
+              <li><span class="ck"><svg class="i i-xs"><use href="#i-check"/></svg></span>Projeto e orçamento sob medida</li>
+            </ul>
+            <a class="btn btn-primary" href="#contato" data-plan="app">Falar com a gente <svg class="i i-sm"><use href="#i-arrow"/></svg></a>
+          </article>
+        </div>
+
+        <p class="plans-foot">Valores em reais (BRL), cobrança mensal. Os planos Signature e App próprio são orçados de acordo com o seu restaurante.</p>
+      </div>
+    </section>
+
+    <!-- Demonstração -->
+    <section class="section demo-section" id="demo">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow reveal">Demonstração ao vivo</p>
+          <h2 class="section-title reveal" style="--d:.06s">Clique. Navegue.<br>Sinta o sabor.</h2>
+          <p class="section-sub reveal" style="--d:.12s">Esse é o Brasa Grill, um restaurante de demonstração feito com o Lumenu. Explore à vontade — tudo dentro da janela funciona de verdade.</p>
+        </header>
+
+        <div class="mac-stage reveal" style="--d:.1s">
+          <div class="mac-window" id="macWindow" role="group" aria-label="Janela de demonstração do site Brasa Grill">
+            <div class="mac-titlebar">
+              <div class="traffic">
+                <button class="tl tl-close" type="button" aria-label="Fechar janela" title="Fechar">
+                  <svg viewBox="0 0 10 10"><path d="M2.5 2.5l5 5M7.5 2.5l-5 5"/></svg>
+                </button>
+                <button class="tl tl-min" type="button" aria-label="Minimizar janela" title="Minimizar">
+                  <svg viewBox="0 0 10 10"><path d="M2 5h6"/></svg>
+                </button>
+                <button class="tl tl-max" type="button" aria-label="Tela cheia" title="Tela cheia">
+                  <svg viewBox="0 0 10 10"><path d="M2.4 3.2v4.4h4.4zM7.6 6.8V2.4H3.2z"/></svg>
+                </button>
+              </div>
+
+              <div class="mac-address">
+                <svg class="i"><use href="#i-lock"/></svg>
+                <span class="url">demo-menu-luis.vercel.app</span>
+                <button class="icon-btn" type="button" data-demo-reload aria-label="Recarregar demonstração" title="Recarregar">
+                  <svg class="i"><use href="#i-reload"/></svg>
+                </button>
+              </div>
+
+              <div class="mac-tools">
+                <div class="seg" role="group" aria-label="Tamanho da tela">
+                  <button type="button" data-device="desktop" aria-pressed="true" aria-label="Ver como computador" title="Computador"><svg class="i"><use href="#i-monitor"/></svg></button>
+                  <button type="button" data-device="mobile" aria-pressed="false" aria-label="Ver como celular" title="Celular"><svg class="i"><use href="#i-smartphone"/></svg></button>
+                </div>
+                <a class="icon-btn" href="https://demo-menu-luis.vercel.app/" target="_blank" rel="noopener" aria-label="Abrir demonstração em nova aba" title="Abrir em nova aba">
+                  <svg class="i"><use href="#i-external"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <div class="mac-body" data-device="desktop">
+              <div class="mac-loader" aria-hidden="true">
+                <span class="spinner"></span>
+                Carregando demonstração…
+              </div>
+              <iframe
+                src="https://demo-menu-luis.vercel.app/"
+                title="Site de demonstração do restaurante Brasa Grill"
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            </div>
+          </div>
+
+          <!-- Estado: fechada -->
+          <div class="mac-state" id="macClosed" inert>
+            <span class="state-ico"><svg class="i"><use href="#i-window"/></svg></span>
+            <h3>Janela fechada</h3>
+            <p>Sem problemas — a demonstração continua aqui quando você quiser.</p>
+            <button class="btn btn-primary" type="button" data-demo-reopen>Reabrir demonstração</button>
+          </div>
+
+          <!-- Estado: minimizada -->
+          <div class="mac-state" id="macMinimized" inert>
+            <h3>Janela minimizada</h3>
+            <p>Clique no ícone do Brasa Grill no Dock para trazer a demonstração de volta.</p>
+            <div class="mac-dock">
+              <span class="dock-app dock-lumenu" aria-hidden="true"><svg class="i"><use href="#i-logo"/></svg></span>
+              <button class="dock-app dock-brasa" type="button" data-demo-restore aria-label="Restaurar demonstração do Brasa Grill" title="Brasa Grill">
+                <svg class="i"><use href="#i-flame"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="demo-hint reveal">
+          Experimente os botões da janela:
+          <span><i style="background:#ff5f57"></i>fechar</span>
+          <span><i style="background:#febc2e"></i>minimizar</span>
+          <span><i style="background:#28c840"></i>tela cheia</span>
+        </p>
+
+        <div class="demo-cta reveal">
+          <a class="btn btn-primary" href="#contato">Quero um desse no meu restaurante</a>
+          <a class="btn btn-ghost" href="#planos">Comparar planos</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tipos de restaurante -->
+    <section class="band" aria-label="Para quem é o Lumenu">
+      <p class="band-title">Feito para todo tipo de restaurante</p>
+      <div class="marquee">
+        <div class="marquee-track">
+          <span>Pizzarias</span><span>Hamburguerias</span><span>Churrascarias</span><span>Cafeterias</span><span>Bares</span><span>Restaurantes japoneses</span><span>Padarias</span><span>Açaiterias</span><span>Bistrôs</span><span>Food trucks</span><span>Marmitarias</span><span>Docerias</span>
+          <span aria-hidden="true">Pizzarias</span><span aria-hidden="true">Hamburguerias</span><span aria-hidden="true">Churrascarias</span><span aria-hidden="true">Cafeterias</span><span aria-hidden="true">Bares</span><span aria-hidden="true">Restaurantes japoneses</span><span aria-hidden="true">Padarias</span><span aria-hidden="true">Açaiterias</span><span aria-hidden="true">Bistrôs</span><span aria-hidden="true">Food trucks</span><span aria-hidden="true">Marmitarias</span><span aria-hidden="true">Docerias</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recursos -->
+    <section class="section section-soft" id="recursos">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow reveal">Por que Lumenu</p>
+          <h2 class="section-title reveal" style="--d:.06s">Tudo que seu restaurante precisa para vender mais.</h2>
+          <p class="section-sub reveal" style="--d:.12s">Menos telefone tocando, menos cardápio reimpresso e mais clientes voltando. Uma plataforma, todos os canais.</p>
+        </header>
+
+        <div class="bento">
+          <!-- Cardápio -->
+          <article class="tile span-2 tile-split reveal">
+            <div>
+              <span class="ico-chip"><svg class="i"><use href="#i-book"/></svg></span>
+              <h3>Um cardápio digital que dá fome.</h3>
+              <p>Fotos bonitas, categorias, destaques e “esgotado” em um toque. Mudou o preço? Atualize em segundos — sem reimprimir nada.</p>
+            </div>
+            <div class="menu-demo" aria-hidden="true">
+              <div class="menu-tabs"><span class="on">Grelhados</span><span>Entradas</span><span>Bebidas</span></div>
+              <div class="menu-item">
+                <span class="thumb" style="--c1:#ffb45c;--c2:#c2410c"></span>
+                <span class="mi-body"><b>Costela 8h</b><small>Assada lentamente na brasa</small></span>
+                <span class="price">R$ 89,90</span>
+              </div>
+              <div class="menu-item">
+                <span class="thumb" style="--c1:#ff8a65;--c2:#9a3412"></span>
+                <span class="mi-body"><b>Picanha na brasa</b><small>400 g, farofa e vinagrete</small></span>
+                <span class="price">R$ 119,90</span>
+              </div>
+              <div class="menu-item is-out">
+                <span class="thumb" style="--c1:#fde68a;--c2:#ca8a04"></span>
+                <span class="mi-body"><b>Batata rústica</b><small>Alecrim e flor de sal</small></span>
+                <span class="out">Esgotado</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Delivery -->
+          <article class="tile tile-blue reveal" style="--d:.08s">
+            <span class="ico-chip"><svg class="i"><use href="#i-bag"/></svg></span>
+            <h3>Delivery no seu canal.</h3>
+            <p>O cliente pede pelo seu link e o pedido chega organizado para a cozinha.</p>
+            <div class="tile-visual" aria-hidden="true">
+              <div class="ticket">
+                <div class="ticket-row"><span>2x Picanha na brasa</span><span>239,80</span></div>
+                <div class="ticket-row"><span>1x Batata rústica</span><span>29,90</span></div>
+                <div class="ticket-row total"><span>Total</span><span>R$ 269,70</span></div>
+                <div class="progress"><span class="on"></span><i class="on"></i><span class="on"></span><i></i><span></span></div>
+                <div class="progress-labels"><span>Recebido</span><span>Preparo</span><span>A caminho</span></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Reservas -->
+          <article class="tile reveal">
+            <span class="ico-chip"><svg class="i"><use href="#i-calendar"/></svg></span>
+            <h3>Reservas sem fila no telefone.</h3>
+            <p>O cliente escolhe dia, horário e número de pessoas. Você só confirma.</p>
+            <div class="tile-visual" aria-hidden="true">
+              <div class="slots">
+                <span>19:00</span><span class="off">19:30</span><span class="on">20:00</span><span>20:30</span><span>21:00</span>
+              </div>
+              <div class="slots-meta"><svg class="i"><use href="#i-users"/></svg> 4 pessoas · Sábado</div>
+            </div>
+          </article>
+
+          <!-- Email -->
+          <article class="tile reveal" style="--d:.08s">
+            <span class="ico-chip"><svg class="i"><use href="#i-mail"/></svg></span>
+            <h3>Email que traz o cliente de volta.</h3>
+            <p>Lançamentos, datas especiais e novidades direto na caixa de entrada.</p>
+            <div class="tile-visual" aria-hidden="true">
+              <div class="mail">
+                <div class="mail-from"><span class="av"></span><span><b>Brasa Grill</b><small>Terça da Costela chegou</small></span></div>
+                <div class="mail-banner">Terça da Costela</div>
+                <span class="mail-btn">Ver cardápio</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Promoções -->
+          <article class="tile reveal" style="--d:.16s">
+            <span class="ico-chip"><svg class="i"><use href="#i-tag"/></svg></span>
+            <h3>Promoções que enchem a terça.</h3>
+            <p>Crie ofertas, combos e cupons para os dias e horários mais fracos.</p>
+            <div class="tile-visual" aria-hidden="true">
+              <div class="promo">
+                <span class="promo-off">-20%</span>
+                <span><b>Happy hour da brasa</b><code>BRASA20</code></span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Qualquer tela -->
+          <article class="tile reveal">
+            <span class="ico-chip"><svg class="i"><use href="#i-qr"/></svg></span>
+            <h3>Funciona em qualquer celular.</h3>
+            <p>Sem baixar nada: o cliente acessa pelo link, QR Code ou Instagram.</p>
+            <div class="tile-visual" aria-hidden="true">
+              <div class="qr-wrap">
+                <div class="qr">
+                  <svg viewBox="0 0 21 21" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M0 0h7v7h-7zM1 1v5h5v-5zM2 2h3v3h-3zM14 0h7v7h-7zM15 1v5h5v-5zM16 2h3v3h-3zM0 14h7v7h-7zM1 15v5h5v-5zM2 16h3v3h-3z"/><path fill="currentColor" d="M9 0h1v1h-1zM12 0h1v1h-1zM8 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM12 1h1v1h-1zM8 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM8 3h1v1h-1zM9 3h1v1h-1zM11 3h1v1h-1zM8 4h1v1h-1zM9 4h1v1h-1zM12 4h1v1h-1zM8 5h1v1h-1zM9 5h1v1h-1zM10 5h1v1h-1zM11 5h1v1h-1zM12 5h1v1h-1zM10 6h1v1h-1zM10 7h1v1h-1zM11 7h1v1h-1zM12 7h1v1h-1zM13 7h1v1h-1zM2 8h1v1h-1zM6 8h1v1h-1zM10 8h1v1h-1zM11 8h1v1h-1zM19 8h1v1h-1zM20 8h1v1h-1zM1 9h1v1h-1zM3 9h1v1h-1zM4 9h1v1h-1zM5 9h1v1h-1zM8 9h1v1h-1zM9 9h1v1h-1zM11 9h1v1h-1zM13 9h1v1h-1zM17 9h1v1h-1zM18 9h1v1h-1zM20 9h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM12 10h1v1h-1zM13 10h1v1h-1zM14 10h1v1h-1zM15 10h1v1h-1zM16 10h1v1h-1zM1 11h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM10 11h1v1h-1zM14 11h1v1h-1zM15 11h1v1h-1zM16 11h1v1h-1zM18 11h1v1h-1zM20 11h1v1h-1zM0 12h1v1h-1zM1 12h1v1h-1zM5 12h1v1h-1zM7 12h1v1h-1zM8 12h1v1h-1zM9 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM16 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM7 13h1v1h-1zM8 13h1v1h-1zM11 13h1v1h-1zM12 13h1v1h-1zM16 13h1v1h-1zM17 13h1v1h-1zM19 13h1v1h-1zM20 13h1v1h-1zM9 14h1v1h-1zM13 14h1v1h-1zM14 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM17 14h1v1h-1zM19 14h1v1h-1zM9 15h1v1h-1zM10 15h1v1h-1zM11 15h1v1h-1zM16 15h1v1h-1zM17 15h1v1h-1zM18 15h1v1h-1zM20 15h1v1h-1zM9 16h1v1h-1zM12 16h1v1h-1zM14 16h1v1h-1zM17 16h1v1h-1zM20 16h1v1h-1zM8 17h1v1h-1zM9 17h1v1h-1zM10 17h1v1h-1zM11 17h1v1h-1zM12 17h1v1h-1zM14 17h1v1h-1zM15 17h1v1h-1zM16 17h1v1h-1zM17 17h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM16 18h1v1h-1zM19 18h1v1h-1zM8 19h1v1h-1zM9 19h1v1h-1zM14 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM8 20h1v1h-1zM12 20h1v1h-1zM13 20h1v1h-1zM15 20h1v1h-1z"/></svg>
+                </div>
+                <p>Cole o QR Code na mesa, no balcão ou na embalagem do delivery.</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Marca -->
+          <article class="tile span-2 tile-split reveal" style="--d:.08s">
+            <div>
+              <span class="ico-chip"><svg class="i"><use href="#i-palette"/></svg></span>
+              <h3>Com a cara do seu restaurante.</h3>
+              <p>Suas cores, sua logo, suas fotos. O cliente vê a sua marca do começo ao fim — não a nossa.</p>
+            </div>
+            <div class="brand-kit" aria-hidden="true">
+              <div class="swatches">
+                <i style="--c:#e8590c"></i><i style="--c:#ffb45c"></i><i style="--c:#1c1c1e"></i><i style="--c:#f5efe6"></i>
+              </div>
+              <span class="font-sample">Aa</span>
+              <span class="font-sample serif">Aa</span>
+              <span class="logo-sample"><i></i>Brasa Grill</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Como funciona -->
+    <section class="section" id="como-funciona">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow reveal">Como funciona</p>
+          <h2 class="section-title reveal" style="--d:.06s">Do primeiro contato ao primeiro pedido.</h2>
+        </header>
+
+        <div class="steps">
+          <article class="step reveal">
+            <span class="step-num">01</span>
+            <h3>Fale com a gente</h3>
+            <p>Conte como funciona o seu restaurante e escolha o plano ideal: delivery, salão ou os dois.</p>
+          </article>
+          <article class="step reveal" style="--d:.08s">
+            <span class="step-num">02</span>
+            <h3>A gente monta tudo</h3>
+            <p>Cadastramos cardápio, fotos e horários, e deixamos tudo com a identidade visual da sua marca.</p>
+          </article>
+          <article class="step reveal" style="--d:.16s">
+            <span class="step-num">03</span>
+            <h3>Divulgue e venda</h3>
+            <p>Compartilhe seu link e QR Code e acompanhe pedidos e reservas chegando.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section section-soft" id="faq">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow reveal">Dúvidas</p>
+          <h2 class="section-title reveal" style="--d:.06s">Perguntas frequentes.</h2>
+        </header>
+
+        <div class="faq reveal">
+          <details>
+            <summary>Preciso entender de tecnologia para usar? <span class="plus"><svg class="i i-sm"><use href="#i-plus"/></svg></span></summary>
+            <div class="answer"><p>Não. A gente cuida da configuração inicial com você. No dia a dia, atualizar preços, fotos ou marcar um item como esgotado leva poucos cliques.</p></div>
+          </details>
+          <details>
+            <summary>Meu cliente precisa baixar algum aplicativo? <span class="plus"><svg class="i i-sm"><use href="#i-plus"/></svg></span></summary>
+            <div class="answer"><p>Não. Cardápio, delivery e reservas funcionam direto no navegador do celular — basta acessar o seu link ou escanear o QR Code. Se você quiser um app com a sua marca nas lojas, temos o plano App próprio.</p></div>
+          </details>
+          <details>
+            <summary>Posso trocar de plano depois? <span class="plus"><svg class="i i-sm"><use href="#i-plus"/></svg></span></summary>
+            <div class="answer"><p>Sim. Você pode começar com o Básico ou o Pro e migrar para o Ultimate quando o seu restaurante precisar de delivery e reservas juntos.</p></div>
+          </details>
+          <details>
+            <summary>Como funciona o cardápio digital no tablet? <span class="plus"><svg class="i i-sm"><use href="#i-plus"/></svg></span></summary>
+            <div class="answer"><p>No plano Signature, o seu cardápio vai para tablets no salão, com toda a experiência do Ultimate. Como o projeto depende do número de mesas e de dispositivos, o valor é definido por orçamento.</p></div>
+          </details>
+          <details>
+            <summary>Vocês desenvolvem um aplicativo só do meu restaurante? <span class="plus"><svg class="i i-sm"><use href="#i-plus"/></svg></span></summary>
+            <div class="answer"><p>Sim. No plano App próprio, criamos um aplicativo com a identidade do seu restaurante. Entre em contato para entendermos o que você precisa e enviarmos um orçamento.</p></div>
+          </details>
+          <details>
+            <summary>Posso ver funcionando antes de contratar? <span class="plus"><svg class="i i-sm"><use href="#i-plus"/></svg></span></summary>
+            <div class="answer"><p>Claro! Navegue pela <a href="#demo">demonstração ao vivo</a> do Brasa Grill ou fale com a gente para uma apresentação do Lumenu pensada para o seu restaurante.</p></div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA final -->
+    <section class="section">
+      <div class="container">
+        <div class="cta-card reveal">
+          <h2 class="section-title">Pronto para encher as mesas?</h2>
+          <p class="section-sub">Deixe seu email e receba uma apresentação do Lumenu — ou chame a gente agora no WhatsApp.</p>
+
+          <form class="email-capture" data-lead-form data-origin="Chamada final" data-status="status-cta">
+            <label class="sr-only" for="email-cta">Seu email</label>
+            <input id="email-cta" type="email" name="email" placeholder="Deixe seu melhor email" autocomplete="email" required>
+            <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button class="btn btn-primary" type="submit">Quero conhecer</button>
+          </form>
+          <p class="form-status" id="status-cta" role="status" aria-live="polite"></p>
+
+          <div class="demo-cta">
+            <a class="btn btn-outline-white" href="https://wa.me/5511947849239?text=Ol%C3%A1!%20Quero%20conhecer%20o%20Lumenu%20para%20o%20meu%20restaurante." target="_blank" rel="noopener">
+              <svg class="i"><use href="#i-whatsapp"/></svg>
+              Chamar no WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contato -->
+    <section class="section section-soft" id="contato">
+      <div class="container">
+        <header class="section-head">
+          <p class="eyebrow reveal">Contato</p>
+          <h2 class="section-title reveal" style="--d:.06s">Vamos conversar sobre o seu restaurante.</h2>
+          <p class="section-sub reveal" style="--d:.12s">Tire dúvidas, peça um orçamento ou agende uma apresentação. Escolha o canal que preferir.</p>
+        </header>
+
+        <div class="contact-grid">
+          <div class="contact-info reveal">
+            <a class="info-card" href="mailto:luispyim@icloud.com">
+              <span class="ico-chip"><svg class="i"><use href="#i-mail"/></svg></span>
+              <span><small>Email</small><strong>luispyim@icloud.com</strong></span>
+              <svg class="i i-sm go"><use href="#i-chevron"/></svg>
+            </a>
+            <a class="info-card" href="tel:+5511947849239">
+              <span class="ico-chip"><svg class="i"><use href="#i-phone"/></svg></span>
+              <span><small>Telefone</small><strong>+55 (11) 94784-9239</strong></span>
+              <svg class="i i-sm go"><use href="#i-chevron"/></svg>
+            </a>
+            <div class="socials-card">
+              <small>Redes sociais</small>
+              <div class="socials">
+                <a class="social" href="https://www.instagram.com/oluuiss/" target="_blank" rel="noopener">
+                  <svg class="i"><use href="#i-instagram"/></svg>
+                  Instagram<small>@oluuiss</small>
+                </a>
+                <a class="social" href="https://www.linkedin.com/in/oluuiss/" target="_blank" rel="noopener">
+                  <svg class="i"><use href="#i-linkedin"/></svg>
+                  LinkedIn<small>@oluuiss</small>
+                </a>
+                <a class="social" href="https://wa.me/5511947849239?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Lumenu." target="_blank" rel="noopener">
+                  <svg class="i"><use href="#i-whatsapp"/></svg>
+                  WhatsApp<small>Chamar agora</small>
+                </a>
+              </div>
+            </div>
+            <div class="quote-card">
+              <span class="ico-chip"><svg class="i"><use href="#i-tablet"/></svg></span>
+              <h3>Signature ou App próprio?</h3>
+              <p>Conte quantas mesas você tem e o que imagina para o seu restaurante. A gente monta um orçamento sob medida.</p>
+              <a class="link-arrow" href="#contato" data-plan="signature">Pedir orçamento <svg class="i i-sm"><use href="#i-chevron"/></svg></a>
+            </div>
+          </div>
+
+          <form class="contact-form reveal" id="contactForm" style="--d:.08s" novalidate>
+            <h3>Envie uma mensagem</h3>
+            <p>Responderemos pelo email ou WhatsApp que você informar.</p>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="cf-nome">Nome</label>
+                <input id="cf-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
+              </div>
+              <div class="field">
+                <label for="cf-restaurante">Restaurante <span class="opt">(opcional)</span></label>
+                <input id="cf-restaurante" name="restaurante" type="text" autocomplete="organization" placeholder="Nome do restaurante">
+              </div>
+              <div class="field">
+                <label for="cf-email">Email</label>
+                <input id="cf-email" name="email" type="email" autocomplete="email" placeholder="voce@restaurante.com" required>
+              </div>
+              <div class="field">
+                <label for="cf-whatsapp">WhatsApp <span class="opt">(opcional)</span></label>
+                <input id="cf-whatsapp" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(11) 90000-0000">
+              </div>
+              <div class="field full">
+                <label for="cf-interesse">Tenho interesse em</label>
+                <select id="cf-interesse" name="interesse" required>
+                  <option value="" disabled selected>Selecione um plano</option>
+                  <option value="basico">Básico — R$ 59,90/mês (delivery)</option>
+                  <option value="pro">Pro — R$ 99,90/mês (reserva de mesa)</option>
+                  <option value="ultimate">Ultimate — R$ 149,90/mês (delivery + reservas)</option>
+                  <option value="signature">Signature — cardápio no tablet (orçamento)</option>
+                  <option value="app">App próprio (orçamento)</option>
+                  <option value="duvida">Ainda não sei, quero ajuda para escolher</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="cf-mensagem">Mensagem <span class="opt">(opcional)</span></label>
+                <textarea id="cf-mensagem" name="mensagem" placeholder="Conte um pouco sobre o seu restaurante: tem delivery? quantas mesas?"></textarea>
+              </div>
+            </div>
+
+            <input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">Enviar mensagem</button>
+              <button class="btn btn-secondary" type="button" data-whatsapp-form>
+                <svg class="i i-sm"><use href="#i-whatsapp"/></svg>
+                Enviar pelo WhatsApp
+              </button>
+            </div>
+            <p class="form-status" id="status-contact" role="status" aria-live="polite"></p>
+            <p class="form-legal">Ao enviar, você concorda com a nossa <a href="privacidade.html">Política de Privacidade</a>.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="brand" href="#topo">
+            <span class="brand-mark"><svg class="i"><use href="#i-logo"/></svg></span>
+            Lumenu
+          </a>
+          <p>Cardápio digital, delivery e reservas para restaurantes que querem crescer.</p>
+          <div class="footer-social">
+            <a href="https://www.instagram.com/oluuiss/" target="_blank" rel="noopener" aria-label="Instagram @oluuiss"><svg class="i"><use href="#i-instagram"/></svg></a>
+            <a href="https://www.linkedin.com/in/oluuiss/" target="_blank" rel="noopener" aria-label="LinkedIn @oluuiss"><svg class="i"><use href="#i-linkedin"/></svg></a>
+            <a href="https://wa.me/5511947849239" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="i"><use href="#i-whatsapp"/></svg></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Produto</h4>
+          <ul>
+            <li><a href="#planos">Planos</a></li>
+            <li><a href="#demo">Demonstração</a></li>
+            <li><a href="#recursos">Recursos</a></li>
+            <li><a href="#como-funciona">Como funciona</a></li>
+            <li><a href="#faq">Dúvidas</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="privacidade.html">Política de Privacidade</a></li>
+            <li><a href="termos.html">Termos de Uso</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Contato</h4>
+          <ul>
+            <li><a href="mailto:luispyim@icloud.com">luispyim@icloud.com</a></li>
+            <li><a href="tel:+5511947849239">+55 (11) 94784-9239</a></li>
+            <li><a href="https://wa.me/5511947849239" target="_blank" rel="noopener">WhatsApp</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="copyright">© <span data-year>2026</span> Lumenu. Todos os direitos reservados.</p>
+        <nav class="footer-legal" aria-label="Links legais">
+          <a href="privacidade.html">Política de Privacidade</a>
+          <a href="termos.html">Termos de Uso</a>
+        </nav>
+        <p class="credit">Created by <a href="https://oluuiss.com" target="_blank" rel="noopener">@oluuiss</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
