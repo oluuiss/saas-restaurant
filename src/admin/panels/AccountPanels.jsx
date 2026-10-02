@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { PLANS, formatBRL } from '../../../shared/plans.js';
 import { BRAND_NAMES } from '../../../shared/payments.js';
 import { eventTime } from '../../../shared/policy.js';
@@ -25,32 +26,8 @@ const STATUS = {
 };
 
 export function ReservationsPanel() {
-  const { draft, update, setPanel, showToast } = useAdmin();
-  const [state, setState] = useState({ status: 'loading', list: [], today: '' });
+  const { draft, update, setPanel } = useAdmin();
   const settings = draft.reservations;
-
-  const load = useCallback(() => {
-    api
-      .get('restaurant/reservations')
-      .then(({ reservations, today }) => setState({ status: 'ready', list: reservations, today }))
-      .catch((err) => setState({ status: 'error', list: [], message: err.message }));
-  }, []);
-  useEffect(load, [load]);
-
-  const setStatus = async (r, status, confirmText) => {
-    if (confirmText && !window.confirm(confirmText)) return;
-    try {
-      await api.post(`restaurant/reservations/${r.id}/status`, { status });
-      load();
-    } catch (err) {
-      showToast(err.message);
-    }
-  };
-
-  const groups = state.list.reduce((acc, r) => {
-    (acc[r.date] ??= []).push(r);
-    return acc;
-  }, {});
   const select = (key, options) => (
     <select className="lx-select lx-select--sm" value={settings[key]} onChange={(e) => update(['reservations', key], Number(e.target.value))}>
       {options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -59,63 +36,11 @@ export function ReservationsPanel() {
 
   return (
     <>
-      <PanelHeader title="Reservas" description="Quem reservou, a nota de cada cliente e a presença. Marcar quem compareceu ou não veio atualiza a nota dele." />
-      <Section title="Próximas reservas" aside={<button type="button" className="lx-btn lx-btn--plain lx-btn--sm" onClick={load}><RotateIcon size={14} /> Atualizar</button>}>
-        {state.status === 'loading' && <p className="lx-hint">Carregando…</p>}
-        {state.status === 'error' && <div className="lx-alert lx-alert--error"><AlertIcon size={18} />{state.message}</div>}
-        {state.status === 'ready' && !state.list.length && (
-          <div className="adm-empty">
-            <CalendarIcon size={22} />
-            <strong>Nenhuma reserva ainda</strong>
-            <span>Quando seus clientes reservarem pelo site publicado, elas aparecem aqui.</span>
-          </div>
-        )}
-        {Object.entries(groups).map(([date, list]) => (
-          <div key={date} className="adm-res-day">
-            <h4>{dateLabel(date, state.today)}</h4>
-            <ul className="adm-res">
-              {list.map((r) => {
-                const started = eventTime(r.date, r.time) <= Date.now();
-                const [label, tone] = STATUS[r.status];
-                return (
-                  <li key={r.id} className={`is-${r.status}`}>
-                    <span className="adm-res__time">{r.time}</span>
-                    <span className="adm-res__info">
-                      <strong>
-                        {r.name}
-                        {r.score !== null && (
-                          <span className={`adm-score ${r.score < 3 ? 'is-low' : ''}`} title="Nota do cliente (0 a 5)"><StarIcon size={11} /> {r.score.toFixed(1)}</span>
-                        )}
-                      </strong>
-                      <small>
-                        <UsersIcon size={12} /> {r.partySize} · Mesa {r.tableLabel} · <PhoneIcon size={12} /> <a href={`tel:${r.phone.replace(/[^\d+]/g, '')}`}>{r.phone}</a> · {r.code}
-                      </small>
-                      {r.promo && <small className="adm-ok-text">{r.promo.title}{r.promo.code ? ` · ${r.promo.code}` : ''}</small>}
-                      {r.status === 'canceled' && <small>Cancelada {r.canceledBy === 'customer' ? 'pelo cliente' : 'pelo restaurante'}</small>}
-                    </span>
-                    <span className="adm-res__side">
-                      <span className={`lx-badge lx-badge--${tone}`}>{label}</span>
-                      {r.status === 'confirmed' && started && (
-                        <span className="adm-res__actions">
-                          <button type="button" className="lx-btn lx-btn--secondary lx-btn--sm" onClick={() => setStatus(r, 'attended')}><CheckIcon size={13} /> Veio</button>
-                          <button type="button" className="lx-btn lx-btn--plain lx-btn--sm adm-danger-text" onClick={() => setStatus(r, 'no_show', `Marcar que ${r.name} não veio? A nota do cliente cai.`)}>Não veio</button>
-                        </span>
-                      )}
-                      {r.status === 'confirmed' && !started && (
-                        <button type="button" className="lx-btn lx-btn--plain lx-btn--sm adm-danger-text" onClick={() => setStatus(r, 'canceled', `Cancelar a reserva de ${r.name}? A nota do cliente não muda.`)}>Cancelar</button>
-                      )}
-                      {['attended', 'no_show'].includes(r.status) && (
-                        <button type="button" className="lx-btn lx-btn--plain lx-btn--sm" onClick={() => setStatus(r, 'confirmed')}>Desfazer</button>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </Section>
-
+      <PanelHeader title="Reservas online" description="Como os clientes reservam pelo site. As reservas recebidas, a presença e a nota de cada cliente ficam no painel, em Reservas." />
+      <Link to="/painel/reservas" className="adm-link-row">
+        <span><strong>Ver reservas recebidas</strong><small>Chegou, não veio e cancelar ficam no painel.</small></span>
+        <CalendarIcon size={18} />
+      </Link>
       <Section title="Configurações">
         <label className="adm-toggle">
           <span><strong>Reservas online</strong><small>Mostra o mapa do salão para o cliente escolher a mesa.</small></span>
@@ -223,56 +148,8 @@ export function DomainPanel() {
 
       <div className="lx-alert lx-alert--info">
         <LockIcon size={18} />
-        <span>Seu painel fica em <strong>{window.location.host}/painel</strong> e só abre com o seu e-mail e senha.</span>
+        <span>O painel fica em <strong>{window.location.host}/painel</strong>: você entra com e-mail e senha, e a equipe pelos links em Colaboradores.</span>
       </div>
-    </>
-  );
-}
-
-export function BillingPanel() {
-  const [state, setState] = useState({ status: 'loading' });
-  useEffect(() => {
-    api.get('restaurant/billing').then((data) => setState({ status: 'ready', ...data })).catch((err) => setState({ status: 'error', message: err.message }));
-  }, []);
-
-  if (state.status !== 'ready') {
-    return (
-      <>
-        <PanelHeader title="Assinatura" />
-        {state.status === 'error' ? <div className="lx-alert lx-alert--error"><AlertIcon size={18} />{state.message}</div> : <p className="lx-hint">Carregando…</p>}
-      </>
-    );
-  }
-
-  const { subscription, payments } = state;
-  const plan = PLANS[subscription?.plan];
-  return (
-    <>
-      <PanelHeader title="Assinatura" description="Seu plano, a próxima cobrança e o histórico de pagamentos." />
-      {subscription && (
-        <div className="adm-plan">
-          <small>Plano atual</small>
-          <strong>{plan?.name ?? subscription.plan}</strong>
-          <span>{formatBRL(subscription.priceCents)}/mês</span>
-          <span className="lx-badge lx-badge--success"><CheckIcon size={12} /> {subscription.status === 'active' ? 'Ativa' : subscription.status}</span>
-          <p>Renova em {fullDate(subscription.currentPeriodEnd)} (todo mês, a partir da data do pagamento).</p>
-        </div>
-      )}
-      <Section title="Pagamentos">
-        <ul className="adm-payments">
-          {payments.map((p, i) => (
-            <li key={i}>
-              <span>
-                <strong>{formatBRL(p.amountCents)}</strong>
-                <small>{fullDate(p.createdAt)} · {p.method === 'pix' ? 'Pix' : `${BRAND_NAMES[p.brand] ?? 'Cartão'} final ${p.last4}`}</small>
-              </span>
-              <span className={`lx-badge ${p.status === 'approved' ? 'lx-badge--success' : 'lx-badge--danger'}`}>{p.status === 'approved' ? 'Aprovado' : 'Recusado'}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="lx-hint" style={{ margin: 0 }}>Gateway de exemplo: nenhuma cobrança real foi feita.</p>
-      </Section>
-      <p className="lx-hint">Quer mudar de plano ou incluir o cardápio no tablet? <a href="/#contato" target="_blank" rel="noopener">Fale com a gente</a>.</p>
     </>
   );
 }

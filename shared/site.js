@@ -422,3 +422,10 @@ export function reservationWindow(site) {
 }
 
 export const timeToMinutes = toMinutes;
+
+/** Pratos esgotados agora (marcados na operação, sem precisar publicar) ficam indisponíveis. */
+export function withSoldOut(site, soldOut) {
+  const ids = new Set(Array.isArray(soldOut) ? soldOut : []);
+  if (!ids.size) return site;
+  return { ...site, menu: { ...site.menu, items: site.menu.items.map((i) => (ids.has(i.id) ? { ...i, available: false } : i)) } };
+}

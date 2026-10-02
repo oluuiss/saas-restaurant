@@ -530,3 +530,15 @@ body {
 .auth__pw .lx-input { padding-right: 76px; }
 .auth__pw button { position: absolute; top: 50%; right: 6px; height: 34px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--lx-blue); font-size: 13px; font-weight: 600; cursor: pointer; transform: translateY(-50%); }
 .auth__pw button:hover { background: var(--lx-blue-50); }
+
+/* Checkout: confirmação do contrato anual */
+.co-summary__contract { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 10px; border-radius: 999px; background: var(--lx-blue-100); color: var(--lx-blue); font-size: 12.5px; font-weight: 600; }
+.co-terms { display: grid; gap: 12px; }
+.co-terms h2 { margin: 0; }
+.co-terms .adm-dialog__lead { margin: 0; }
+.co-terms__icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--lx-blue-100); color: var(--lx-blue); }
+.co-terms__list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.co-terms__list li { display: flex; gap: 8px; color: var(--lx-ink-2); }
+.co-terms__list svg { flex-shrink: 0; margin-top: 3px; color: var(--lx-blue); }
+.co-terms__check { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--lx-bg-soft); font-size: 14px; cursor: pointer; }
+.co-terms__check input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--lx-blue); }

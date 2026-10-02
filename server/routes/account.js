@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
-import { checkPassword, currentAccount, endSession, hashPassword, newSession, requireAccount } from '../auth.js';
+import { checkPassword, currentAccount, endSession, hashPassword, newSession, requireAccount, requireMember } from '../auth.js';
+import { CONTRACT_MONTHS, contractInfo } from '../../shared/contract.js';
 import { EMAIL_RE, HttpError, assertFields, readJson, sendJson } from '../http.js';
 import { PLANS } from '../../shared/plans.js';
 import { processTestPayment, validateCard } from '../../shared/payments.js';
@@ -54,6 +55,7 @@ export async function checkout({ req, res, sql }) {
   if (password.length > 72) fields.password = 'A senha pode ter no máximo 72 caracteres.';
   if (restaurantName.length < 2 || restaurantName.length > 60) fields.restaurantName = 'Informe o nome do restaurante.';
   if (method === 'card') Object.assign(fields, validateCard(body.payment?.card));
+  if (body.acceptTerms !== true) fields.terms = 'Para assinar, leia e aceite os Termos de Uso.';
   assertFields(fields);
 
   const [existing] = await sql`select 1 from accounts where email = ${email}`;
@@ -79,8 +81,8 @@ export async function checkout({ req, res, sql }) {
   try {
     await sql.transaction([
       sql`insert into accounts (id, name, email, password_hash) values (${accountId}, ${name}, ${email}, ${passwordHash})`,
-      sql`insert into subscriptions (id, account_id, plan, status, price_cents, current_period_end)
-          values (${subscriptionId}, ${accountId}, ${plan.id}, 'active', ${plan.priceCents}, now() + interval '1 month')`,
+      sql`insert into subscriptions (id, account_id, plan, status, price_cents, current_period_end, contract_months, terms_accepted_at)
+          values (${subscriptionId}, ${accountId}, ${plan.id}, 'active', ${plan.priceCents}, now() + interval '1 month', ${CONTRACT_MONTHS}, now())`,
       sql`insert into payments (account_id, subscription_id, amount_cents, method, status, card_brand, card_last4)
           values (${accountId}, ${subscriptionId}, ${plan.priceCents}, ${method}, 'approved', ${payment.brand ?? null}, ${payment.last4 ?? null})`,
       sql`insert into restaurants (account_id, slug, draft) values (${accountId}, ${slug}, ${draft}::jsonb)`,
@@ -169,5 +171,41 @@ export async function changePassword({ req, res, sql }) {
   const [row] = await sql`select password_hash from accounts where id = ${account.id}`;
   if (!(await checkPassword(current, row.password_hash))) throw new HttpError(400, 'A senha atual está incorreta.', { fields: { current: 'Senha atual incorreta.' } });
   await sql`update accounts set password_hash = ${await hashPassword(next)} where id = ${account.id}`;
+  sendJson(res, 200, { ok: true });
+}
+
+/* ---------- Assinatura: contrato anual ---------- */
+
+const dateBR = (d) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' }).format(d);
+
+async function latestSubscription(sql, accountId) {
+  const [sub] = await sql`
+    select id, created_at, contract_months, cancel_at from subscriptions
+    where account_id = ${accountId} order by created_at desc limit 1`;
+  if (!sub) throw new HttpError(404, 'Assinatura não encontrada.');
+  return { sub, info: contractInfo({ startedAt: sub.created_at, contractMonths: sub.contract_months, cancelAt: sub.cancel_at }) };
+}
+
+/**
+ * POST /api/account/subscription/cancel — só no último mês do contrato. O plano continua ativo
+ * até a data da próxima cobrança. Antes disso, o cancelamento é com a nossa equipe (multa por quebra de contrato).
+ */
+export async function cancelSubscription({ req, res, sql }) {
+  const member = await requireMember(sql, req, 'billing');
+  const { sub, info } = await latestSubscription(sql, member.restaurant.ownerId);
+  if (info.cancelAt) throw new HttpError(409, `O cancelamento já está agendado para ${dateBR(info.cancelAt)}.`);
+  if (!info.canCancel) {
+    throw new HttpError(409, `O cancelamento sem multa fica disponível a partir de ${dateBR(info.cancelWindowStart)}, no último mês do contrato. Para cancelar antes, fale com a nossa equipe: há multa por quebra de contrato.`, { code: 'early_cancel' });
+  }
+  await sql`update subscriptions set cancel_at = ${info.nextBilling.toISOString()}, cancel_requested_at = now() where id = ${sub.id}`;
+  sendJson(res, 200, { ok: true, cancelAt: info.nextBilling });
+}
+
+/** POST /api/account/subscription/resume — desiste do cancelamento enquanto o plano ainda está ativo. */
+export async function resumeSubscription({ req, res, sql }) {
+  const member = await requireMember(sql, req, 'billing');
+  const { sub, info } = await latestSubscription(sql, member.restaurant.ownerId);
+  if (!info.cancelAt) throw new HttpError(409, 'Não há cancelamento agendado.');
+  await sql`update subscriptions set cancel_at = null, cancel_requested_at = null where id = ${sub.id}`;
   sendJson(res, 200, { ok: true });
 }

@@ -156,3 +156,78 @@ create table if not exists service_calls (
   done_at timestamptz
 );
 create index if not exists service_calls_restaurant_idx on service_calls(restaurant_id, status);
+
+-- ---------- Rodada 3: operação do salão, equipe, financeiro e contrato anual ----------
+
+-- Contrato anual cobrado por mês; cancelamento só no último mês e vale a partir da próxima cobrança.
+alter table subscriptions add column if not exists contract_months integer not null default 12;
+alter table subscriptions add column if not exists terms_accepted_at timestamptz;
+alter table subscriptions add column if not exists cancel_requested_at timestamptz;
+alter table subscriptions add column if not exists cancel_at timestamptz;
+
+-- Configurações da operação ({ serviceFee: 10 }) e pratos esgotados agora (valem sem publicar o site).
+alter table restaurants add column if not exists settings jsonb not null default '{}'::jsonb;
+alter table restaurants add column if not exists sold_out jsonb not null default '[]'::jsonb;
+
+-- Colaboradores: entram pelo link /equipe/<access_code> com a senha que o gerente definiu.
+create table if not exists staff (
+  id uuid primary key default gen_random_uuid(),
+  restaurant_id uuid not null references restaurants(id) on delete cascade,
+  name text not null,
+  role text not null check (role in ('socio', 'garcom', 'caixa', 'cozinha', 'recepcao')),
+  phone text not null default '',
+  access_code text not null unique,
+  password_hash text not null,
+  active boolean not null default true,
+  failed_logins integer not null default 0,
+  locked_until timestamptz,
+  last_login_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists staff_restaurant_idx on staff(restaurant_id);
+
+-- Uma sessão é do dono da conta (account_id) ou de um colaborador (staff_id).
+alter table sessions alter column account_id drop not null;
+alter table sessions add column if not exists staff_id uuid references staff(id) on delete cascade;
+alter table sessions drop constraint if exists sessions_owner_check;
+alter table sessions add constraint sessions_owner_check check ((account_id is null) <> (staff_id is null));
+create index if not exists sessions_staff_idx on sessions(staff_id);
+
+-- Mesa ocupada (comanda): do momento em que o grupo senta até o fechamento da conta.
+create table if not exists table_sessions (
+  id uuid primary key default gen_random_uuid(),
+  restaurant_id uuid not null references restaurants(id) on delete cascade,
+  table_id text not null,
+  table_label text not null,
+  people integer not null default 0 check (people between 0 and 99),
+  reservation_id uuid references reservations(id) on delete set null,
+  status text not null default 'open' check (status in ('open', 'closed')),
+  opened_by text not null default '',
+  opened_at timestamptz not null default now(),
+  closed_by text,
+  closed_at timestamptz,
+  subtotal_cents integer,
+  service_cents integer,
+  total_cents integer,
+  payment_method text check (payment_method in ('credit', 'debit', 'pix', 'cash', 'other'))
+);
+create unique index if not exists table_sessions_open_idx on table_sessions(restaurant_id, table_id) where status = 'open';
+create index if not exists table_sessions_closed_idx on table_sessions(restaurant_id, closed_at);
+
+alter table orders add column if not exists table_session_id uuid references table_sessions(id) on delete set null;
+alter table orders add column if not exists created_by text;
+create index if not exists orders_session_idx on orders(table_session_id);
+
+-- Despesas do restaurante (aluguel, salários, fornecedores…). Recorrentes repetem todo mês até ended_on.
+create table if not exists expenses (
+  id uuid primary key default gen_random_uuid(),
+  restaurant_id uuid not null references restaurants(id) on delete cascade,
+  description text not null,
+  category text not null,
+  amount_cents integer not null check (amount_cents > 0),
+  date date not null,
+  recurring boolean not null default false,
+  ended_on date,
+  created_at timestamptz not null default now()
+);
+create index if not exists expenses_restaurant_idx on expenses(restaurant_id, date);

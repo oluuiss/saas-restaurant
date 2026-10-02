@@ -23,11 +23,45 @@ npm run db:migrate
 
 ## Fluxo
 
-1. **/assinar?plano=ultimate**: checkout. Cria a conta, a assinatura, o restaurante (com conteúdo de exemplo) e já faz login.
-2. **/painel**: painel do restaurante. Edita clicando direto no texto/foto da prévia ou pelo menu lateral. Salva sozinho (e pelo botão Salvar / Ctrl+S), com Desfazer/Refazer (Ctrl+Z, Ctrl+Shift+Z).
-3. **Publicar**: copia o rascunho para o site público. Exige nome e **planta com pelo menos uma mesa**.
-4. **Site público**: cada restaurante vira uma "pasta" do próprio Lumenu: `https://<domínio do Lumenu>/<slug>` (ex.: `/cantina-da-nona`). Não cria projeto nem domínio novo. Os endereços antigos `/r/<slug>` redirecionam.
-5. **/painel/configuracoes**: perfil, foto, dados da empresa, plano (renova todo mês no dia do pagamento) e senha.
+1. **/assinar?plano=ultimate**: checkout. Ao clicar em pagar, o cliente confirma o **contrato anual** e aceita os Termos de Uso (obrigatório, também validado na API). Cria a conta, a assinatura, o restaurante (com conteúdo de exemplo) e já faz login.
+2. **/painel**: painel de operação (página inicial, pedidos, reservas, cardápio do dia, clientes, dashboard, colaboradores, configurações). Ver "Painel de operação" abaixo.
+3. **/painel/site**: editor do site (gerente e sócios). Edita clicando direto no texto/foto da prévia ou pelo menu lateral. Salva sozinho (e pelo botão Salvar / Ctrl+S), com Desfazer/Refazer (Ctrl+Z, Ctrl+Shift+Z).
+4. **Publicar**: copia o rascunho para o site público. Exige nome e **planta com pelo menos uma mesa**.
+5. **Site público**: cada restaurante vira uma "pasta" do próprio Lumenu: `https://<domínio do Lumenu>/<slug>` (ex.: `/cantina-da-nona`). Não cria projeto nem domínio novo. Os endereços antigos `/r/<slug>` redirecionam.
+6. **/equipe/<código>**: login de cada colaborador, pelo link que o gerente gera em Colaboradores (só pede a senha).
+7. **/painel/mesas/qrcodes**: folha para imprimir um QR Code por mesa.
+
+### Painel de operação
+
+- **Página inicial**: pessoas na casa, mesas ocupadas, mesas chamando atendente, delivery em aberto, reservas de hoje e faturamento do dia; mapa das mesas (livre, ocupada, chamando, reservada).
+  - **Ocupar mesa**: escaneia o QR Code da mesa (ou digita o número) e informa quantas pessoas sentaram, para quem não reservou. Se a mesa tem reserva hoje, dá para marcar que é ela.
+  - **Checkout da mesa**: escaneia o QR Code e mostra o consumo, a taxa de serviço (10%, configurável e opcional por conta), o total e a divisão por pessoa. O pagamento é na maquininha do restaurante; o painel só registra a forma de pagamento e libera a mesa.
+  - Na mesa ocupada: pessoas, pedidos (do garçom e do celular do cliente entram na mesma conta), lançar pedido e fechar a conta.
+- **Pedidos**: quadro da cozinha (novos, em preparo, prontos/a caminho) e chamados das mesas.
+- **Reservas**: lista por dia, "Chegou" já ocupa a mesa reservada, "Não veio" e cancelar.
+- **Cardápio do dia**: marcar prato esgotado vale na hora no site e no salão, sem publicar.
+- **Clientes**: quem tem conta no site, nota, reservas, pedidos, gasto e exportação em planilha.
+- **Dashboard**: lucro líquido do mês, receita (salão + delivery; a taxa de serviço é da equipe e fica fora), despesas, margem, tickets médios, receita e despesas mês a mês no ano, lucro por mês, receita por dia, salão × delivery, despesas por categoria, mais vendidos, horário de pico e reservas. Despesas são lançadas no próprio dashboard (avulsas ou mensais); a mensalidade do Lumenu entra sozinha.
+- **Colaboradores**: o gerente cadastra nome, cargo e senha; o sistema gera o link de acesso (copiar ou mandar por WhatsApp). Dá para desativar, trocar a senha, gerar link novo e remover. O colaborador troca a própria senha em Configurações.
+- **Configurações**: perfil, empresa, taxa de serviço, plano (contrato, próxima cobrança, cancelamento) e senha.
+
+### Cargos (`shared/roles.js`)
+
+| Cargo | Acesso |
+| --- | --- |
+| Gerente (conta principal) | Tudo, inclusive plano e assinatura |
+| Sócio | Tudo, menos plano e assinatura (edita o site, financeiro e equipe) |
+| Garçom / Caixa | Mesas, checkout, pedidos, reservas, esgotados |
+| Cozinha | Pedidos e esgotados |
+| Recepção | Mesas e reservas |
+
+A API confere a permissão em cada rota (`requireMember` em `server/auth.js`); o menu só mostra o que o cargo pode usar.
+
+### Contrato anual (`shared/contract.js`)
+
+- 12 meses, cobrança mensal no dia da assinatura; renova por mais 12 se não cancelar.
+- O cancelamento pelo painel só abre no **último mês** do contrato e o plano fica ativo até a data da próxima cobrança. Antes disso, o painel mostra o contato da equipe (multa por quebra de contrato).
+- Depois da data de cancelamento, o painel e o site do restaurante saem do ar.
 
 ### O que o restaurante edita
 
@@ -37,8 +71,8 @@ npm run db:migrate
 - **Idiomas**: PT/EN/DE. O padrão é o idioma em que o site abre e a bandeira dele vem primeiro.
 - **Promoções**: no cardápio todo, em pratos escolhidos ou para reserva antecipada; % ou R$, cupom opcional, datas e dias da semana.
 - **Delivery**: taxa, pedido mínimo, entrega grátis acima de um valor, prazo e formas de pagamento.
-- **Mesas**: botão "Estou no restaurante", chamar atendente, pedido pela mesa e o link de cada mesa (para QR Code).
-- **Pedidos e chamados** e **Reservas**: atualizam sozinhos; o painel avisa quando chega pedido novo.
+- **Mesas**: botão "Estou no restaurante", chamar atendente, pedido pela mesa, o link de cada mesa e a folha de QR Codes para imprimir.
+- **Reservas online**: duração, intervalo entre horários e antecedência.
 
 ### Clientes do restaurante
 
@@ -79,10 +113,11 @@ O `vercel.json` manda `/api/*` para uma função só (limite de funções do pla
 index.html, css/, js/     Site institucional
 app.html, src/            App React
   pages/                  Checkout, login, painel e site público
-  admin/                  Menu lateral, painéis, editor da planta
+  admin/                  Editor do site: painéis e planta do salão
   site/                   Template do restaurante (edição no lugar)
-server/                   API (rotas, sessões do painel e dos clientes)
+  ops/                    Painel de operação (página inicial, pedidos, dashboard, equipe…)
+server/                   API (rotas, sessões do gerente, da equipe e dos clientes)
 shared/                   Código usado pelo app e pela API (planos, site, planta, idiomas,
-                          preços/promoções, regras de cancelamento e nota)
+                          preços/promoções, cancelamento e nota, cargos, contrato, financeiro)
 db/schema.sql             Tabelas
 ```

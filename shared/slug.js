@@ -4,7 +4,7 @@ export const SLUG_MAX = 40;
 // Caminhos que já são usados pelo próprio Lumenu e não podem virar nome de restaurante.
 export const RESERVED_SLUGS = new Set([
   'api', 'app', 'assets', 'src', 'public', 'node_modules', 'static', 'index', 'favicon',
-  'painel', 'entrar', 'assinar', 'r', 'admin', 'login', 'conta', 'mesa', 'privacidade', 'termos', 'lumenu', 'www',
+  'painel', 'entrar', 'assinar', 'r', 'admin', 'login', 'conta', 'mesa', 'privacidade', 'termos', 'lumenu', 'www', 'equipe',
 ]);
 
 /** "Bistrô São João!" → "bistro-sao-joao" */

@@ -2,37 +2,38 @@ import crypto from 'node:crypto';
 import { checkPassword, hashPassword } from '../auth.js';
 import { currentCustomer, customerStats, endCustomerSession, newCustomerSession, requireCustomer } from '../customers.js';
 import { EMAIL_RE, HttpError, assertFields, readJson, sendJson } from '../http.js';
-import { allTables } from '../../shared/floor.js';
+import { allTables, findTable } from '../../shared/floor.js';
 import { tr } from '../../shared/i18n.js';
 import { canCustomerCancel, cancelDeadline, computeScore } from '../../shared/policy.js';
 import { quoteOrder, reservationDeal } from '../../shared/pricing.js';
 import { processTestPayment, validateCard } from '../../shared/payments.js';
 import { isValidSlug } from '../../shared/slug.js';
-import { reservationSlots, reservationWindow, sanitizeSite } from '../../shared/site.js';
+import { reservationSlots, reservationWindow, sanitizeSite, withSoldOut } from '../../shared/site.js';
+import { contractInfo } from '../../shared/contract.js';
+import { insertOrder } from '../orders.js';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 
-/** Restaurante publicado pelo slug (o documento passa pela normalização para ganhar campos novos). */
+/**
+ * Restaurante publicado pelo slug (o documento passa pela normalização para ganhar campos novos).
+ * Pratos marcados como esgotados no painel ficam indisponíveis na hora; assinatura encerrada tira o site do ar.
+ */
 async function tenant(sql, slug) {
   if (!isValidSlug(slug)) throw new HttpError(404, 'Site não encontrado.');
-  const [row] = await sql`select id, slug, published from restaurants where slug = ${slug} and published is not null`;
+  const [row] = await sql`
+    select r.id, r.slug, r.published, r.sold_out, sub.created_at as sub_started, sub.contract_months, sub.cancel_at
+    from restaurants r
+    left join lateral (
+      select created_at, contract_months, cancel_at from subscriptions
+      where account_id = r.account_id order by created_at desc limit 1
+    ) sub on true
+    where r.slug = ${slug} and r.published is not null`;
   if (!row) throw new HttpError(404, 'Site não encontrado.');
-  return { id: row.id, slug: row.slug, site: sanitizeSite(row.published) };
-}
-
-/** Mesa pelo número digitado: "M12", "m12" ou só "12". */
-export function findTable(site, input) {
-  const typed = String(input ?? '').trim().toUpperCase().replace(/\s+/g, '');
-  if (!typed) return null;
-  const tables = allTables(site);
-  const exact = tables.find((t) => t.label.toUpperCase().replace(/\s+/g, '') === typed);
-  if (exact) return exact;
-  if (/^\d+$/.test(typed)) {
-    const byNumber = tables.filter((t) => t.label.replace(/\D/g, '') === String(Number(typed)));
-    if (byNumber.length === 1) return byNumber[0];
+  if (row.cancel_at && contractInfo({ startedAt: row.sub_started, contractMonths: row.contract_months, cancelAt: row.cancel_at }).ended) {
+    throw new HttpError(404, 'Este site não está mais disponível.');
   }
-  return null;
+  return { id: row.id, slug: row.slug, site: withSoldOut(sanitizeSite(row.published), row.sold_out) };
 }
 
 function assertBookable(site, date, time) {
@@ -254,7 +255,7 @@ export async function createOrder({ req, res, sql, params }) {
   const mode = body.mode === 'table' ? 'table' : 'delivery';
   const customer = await currentCustomer(sql, req, id);
 
-  let tableLabel = null;
+  let table = null;
   let address = null;
   let paymentMethod;
   if (mode === 'delivery') {
@@ -277,15 +278,14 @@ export async function createOrder({ req, res, sql, params }) {
     if (paymentMethod === 'on_delivery' && !site.delivery.payOnDelivery) throw new HttpError(400, 'Pagamento na entrega indisponível.');
   } else {
     if (!site.tableService.enabled || !site.tableService.orders) throw new HttpError(400, 'Pedidos pela mesa estão desativados.');
-    const table = findTable(site, body.table);
+    table = findTable(site, body.table);
     if (!table) throw new HttpError(400, 'Mesa não encontrada.');
-    tableLabel = table.label;
     paymentMethod = 'at_table';
   }
 
   const quote = quoteOrder(site, { lines: body.lines, mode, code: body.code });
-  if (!quote.lines.length) throw new HttpError(400, 'Seu carrinho está vazio.');
   if (quote.errors.includes('unavailable')) throw new HttpError(409, 'Algum item do carrinho ficou indisponível. Revise o pedido.');
+  if (!quote.lines.length) throw new HttpError(400, 'Seu carrinho está vazio.');
   if (quote.errors.includes('minOrder')) throw new HttpError(400, 'O pedido não atingiu o valor mínimo para entrega.');
 
   let payment = { status: 'pending' };
@@ -296,24 +296,14 @@ export async function createOrder({ req, res, sql, params }) {
     payment = { status: 'paid', brand: result.brand, last4: result.last4 };
   }
 
-  const items = quote.lines.map((l) => ({ itemId: l.itemId, name: l.name, qty: l.qty, unit: l.unit, total: l.total }));
-  const name = customer?.name ?? String(body.name ?? '').trim().slice(0, 80);
-  const notes = String(body.notes ?? '').trim().slice(0, 300);
-  const orderId = crypto.randomUUID();
-  const [, inserted] = await sql.transaction([
-    sql`select pg_advisory_xact_lock(hashtext(${`${id}:orders`}))`,
-    sql`
-      insert into orders (id, restaurant_id, customer_id, number, type, table_label, items, subtotal_cents, discount_cents,
-                          delivery_fee_cents, total_cents, coupon, promo_title, payment_method, payment_status, card_brand, card_last4,
-                          customer_name, customer_phone, address, notes)
-      select ${orderId}, ${id}, ${customer?.id ?? null}, coalesce(max(number), 0) + 1, ${mode}, ${tableLabel}, ${JSON.stringify(items)}::jsonb,
-             ${quote.subtotal}, ${quote.discount}, ${quote.deliveryFee}, ${quote.total}, ${quote.coupon?.applied ? quote.coupon.code : null},
-             ${quote.promo ? tr(quote.promo.title, site.defaultLanguage) : null}, ${paymentMethod}, ${payment.status}, ${payment.brand ?? null},
-             ${payment.last4 ?? null}, ${name}, ${customer?.phone ?? ''}, ${address ? JSON.stringify(address) : null}::jsonb, ${notes}
-      from orders where restaurant_id = ${id}
-      returning *`,
-  ]);
-  sendJson(res, 201, { order: orderView(inserted[0]) });
+  const inserted = await insertOrder(sql, id, site, {
+    quote, table, paymentMethod, payment, address,
+    customerId: customer?.id,
+    name: customer?.name ?? String(body.name ?? '').trim().slice(0, 80),
+    phone: customer?.phone ?? '',
+    notes: String(body.notes ?? '').trim().slice(0, 300),
+  });
+  sendJson(res, 201, { order: orderView(inserted) });
 }
 
 /** Andamento de um pedido feito na mesa (o id é longo e aleatório, serve de "ticket"). */

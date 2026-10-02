@@ -800,6 +800,7 @@ h1, h2, h3, h4 { color: var(--ink); }
 .plan-price .quote { font-size: 40px; font-weight: 700; line-height: 1.1; letter-spacing: -0.045em; }
 
 .plan-desc { margin: 0 0 26px; color: var(--ink-2); font-size: 15px; }
+.plan-term { margin: -14px 0 14px; font-size: 13px; font-weight: 600; opacity: 0.8; }
 
 .plan-features {
   display: grid;

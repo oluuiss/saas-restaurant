@@ -98,3 +98,31 @@ export function nextTableLabel(site) {
 }
 
 export const maxTableSeats = (site) => allTables(site).reduce((max, t) => Math.max(max, t.seats), 0);
+
+/** Mesa pelo número digitado: "M12", "m12" ou só "12". */
+export function findTable(site, input) {
+  const typed = String(input ?? '').trim().toUpperCase().replace(/\s+/g, '');
+  if (!typed) return null;
+  const tables = allTables(site);
+  const exact = tables.find((t) => t.label.toUpperCase().replace(/\s+/g, '') === typed);
+  if (exact) return exact;
+  if (/^\d+$/.test(typed)) {
+    const byNumber = tables.filter((t) => t.label.replace(/\D/g, '') === String(Number(typed)));
+    if (byNumber.length === 1) return byNumber[0];
+  }
+  return null;
+}
+
+/** Número da mesa a partir do que o QR Code da plaquinha carrega: "https://…/<slug>/mesa/M12". */
+export function tableFromQr(text, slug) {
+  const value = String(text ?? '').trim();
+  try {
+    const url = new URL(value);
+    const parts = url.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+    const i = parts.indexOf('mesa');
+    if (i > 0 && parts[i + 1] && (!slug || parts[i - 1] === slug)) return parts[i + 1];
+    return null;
+  } catch {
+    return value.length <= 8 ? value : null; // QR com só o número
+  }
+}

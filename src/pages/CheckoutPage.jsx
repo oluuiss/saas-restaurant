@@ -1,13 +1,45 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { CONTRACT_MONTHS } from '../../shared/contract.js';
 import { FEATURE_LABELS, PLANS, formatBRL } from '../../shared/plans.js';
 import { BRAND_NAMES, TEST_CARDS, cardBrand, digitsOnly } from '../../shared/payments.js';
 import { siteLabel, slugify } from '../../shared/slug.js';
 import { api } from '../lib/api.js';
-import { AlertIcon, CardIcon, CheckIcon, CopyIcon, GlobeIcon, LockIcon, PixIcon, ShieldIcon } from '../icons.jsx';
+import { AlertIcon, CalendarIcon, CardIcon, CheckIcon, CloseIcon, CopyIcon, GlobeIcon, LockIcon, PixIcon, ShieldIcon } from '../icons.jsx';
 import { Brand, Field, PseudoQr } from '../ui.jsx';
 
 const EXTRAS = ['Site com cardápio digital', 'Planta do salão e reservas online', 'Até 3 idiomas (PT, EN, DE)', 'Edição direto na tela, sem código'];
+
+/** Confirmação do contrato anual: só segue com o aceite dos Termos de Uso. */
+function TermsDialog({ plan, method, submitting, onAccept, onClose }) {
+  const [accepted, setAccepted] = useState(false);
+  return (
+    <div className="adm-dialog" role="dialog" aria-modal="true" aria-labelledby="terms-title" onClick={onClose}>
+      <div className="adm-dialog__card co-terms" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="adm-dialog__close" onClick={onClose} aria-label="Fechar"><CloseIcon size={18} /></button>
+        <span className="co-terms__icon"><CalendarIcon size={24} /></span>
+        <h2 id="terms-title">Antes de confirmar</h2>
+        <p className="adm-dialog__lead">O plano {plan.name} é um <strong>contrato anual</strong>:</p>
+        <ul className="co-terms__list">
+          <li><CheckIcon size={16} /><span>{CONTRACT_MONTHS} meses de contrato, com cobrança mensal de {formatBRL(plan.priceCents)} no dia da assinatura.</span></li>
+          <li><CheckIcon size={16} /><span>O cancelamento sem multa pode ser pedido no painel só no <strong>último mês do contrato</strong>. O plano continua ativo até a data da próxima cobrança.</span></li>
+          <li><CheckIcon size={16} /><span>Para cancelar antes, é preciso falar com a nossa equipe e pagar a <strong>multa por quebra de contrato</strong>.</span></li>
+          <li><CheckIcon size={16} /><span>Sem cancelamento, o contrato renova por mais {CONTRACT_MONTHS} meses.</span></li>
+        </ul>
+        <label className="co-terms__check">
+          <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
+          <span>
+            Li e aceito os <a href="/termos.html" target="_blank" rel="noopener">Termos de Uso</a> e a{' '}
+            <a href="/privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.
+          </span>
+        </label>
+        <button type="button" className="lx-btn lx-btn--primary lx-btn--lg lx-btn--block" disabled={!accepted || submitting} onClick={onAccept}>
+          {submitting ? <span className="lx-spinner" aria-label="Processando" /> : method === 'pix' ? 'Aceitar e gerar o Pix' : `Aceitar e pagar ${formatBRL(plan.priceCents)}`}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const formatCardNumber = (value) => {
   const d = digitsOnly(value).slice(0, 19);
@@ -35,6 +67,8 @@ export default function CheckoutPage() {
   const [done, setDone] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     document.title = `Assinar ${plan.name} — Lumenu`;
@@ -68,7 +102,8 @@ export default function CheckoutPage() {
     return e;
   };
 
-  const pay = async (e) => {
+  // Confirmar pagamento → aceite dos termos do contrato anual → cobrança.
+  const pay = async (e, accepted = acceptedTerms) => {
     e?.preventDefault();
     const found = validate();
     setErrors(found);
@@ -77,19 +112,36 @@ export default function CheckoutPage() {
       setMessage('Confira os campos destacados.');
       return;
     }
+    if (!accepted) {
+      setTermsOpen(true);
+      return;
+    }
     setSubmitting(true);
     try {
       const result = await api.post('checkout', {
         plan: plan.id,
         ...form,
+        acceptTerms: true,
         payment: method === 'pix' ? { method: 'pix' } : { method: 'card', card },
       });
+      setTermsOpen(false);
       setDone(result);
     } catch (err) {
+      setTermsOpen(false);
       setErrors(err.fields);
       setMessage(err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const acceptTerms = () => {
+    setAcceptedTerms(true);
+    if (method === 'pix' && !pixReady) {
+      setTermsOpen(false);
+      setPixReady(true);
+    } else {
+      pay(null, true);
     }
   };
 
@@ -258,6 +310,7 @@ export default function CheckoutPage() {
                   const found = validate();
                   setErrors(found);
                   if (Object.keys(found).length) setMessage('Confira os campos destacados.');
+                  else if (!acceptedTerms) { setMessage(''); setTermsOpen(true); }
                   else { setMessage(''); setPixReady(true); }
                 }}>
                   Gerar Pix de {formatBRL(plan.priceCents)}
@@ -267,9 +320,10 @@ export default function CheckoutPage() {
                   {submitting ? <span className="lx-spinner" aria-label="Processando" /> : method === 'pix' ? 'Simular pagamento confirmado' : `Pagar ${formatBRL(plan.priceCents)} e criar conta`}
                 </button>
               )}
+              {errors.terms && <div className="lx-alert lx-alert--error" role="alert"><AlertIcon size={18} />{errors.terms}</div>}
               <p className="lx-hint" style={{ textAlign: 'center', margin: 0 }}>
-                Ao assinar, você concorda com os <a href="/termos.html" target="_blank" rel="noopener">Termos de Uso</a> e a{' '}
-                <a href="/privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.
+                Contrato anual com cobrança mensal. Antes de pagar, você confirma que leu os{' '}
+                <a href="/termos.html" target="_blank" rel="noopener">Termos de Uso</a>.
               </p>
             </div>
           </section>
@@ -284,6 +338,7 @@ export default function CheckoutPage() {
               <strong>{formatBRL(plan.priceCents)}</strong>
               <span>/mês</span>
             </div>
+            <span className="co-summary__contract"><CalendarIcon size={14} /> Plano anual · {CONTRACT_MONTHS} meses</span>
           </div>
           <ul>
             {Object.entries(plan.features).filter(([, on]) => on).map(([key]) => (
@@ -292,9 +347,13 @@ export default function CheckoutPage() {
             {EXTRAS.map((extra) => <li key={extra}><CheckIcon size={18} />{extra}</li>)}
           </ul>
           <div className="co-summary__total"><span>Total hoje</span><strong>{formatBRL(plan.priceCents)}</strong></div>
-          <p className="co-summary__note">Cobrança mensal. Gateway de exemplo: nenhuma cobrança real é feita.</p>
+          <p className="co-summary__note">
+            Contrato de {CONTRACT_MONTHS} meses com cobrança mensal. Cancelamento sem multa no último mês do contrato; antes disso, há multa por
+            quebra de contrato. Gateway de exemplo: nenhuma cobrança real é feita.
+          </p>
         </aside>
       </div>
+      {termsOpen && <TermsDialog plan={plan} method={method} submitting={submitting} onAccept={acceptTerms} onClose={() => setTermsOpen(false)} />}
     </div>
   );
 }

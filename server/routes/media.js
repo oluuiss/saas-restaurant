@@ -1,4 +1,4 @@
-import { requireAccount } from '../auth.js';
+import { requireMember } from '../auth.js';
 import { HttpError, readBody, sendJson } from '../http.js';
 
 const MAX_BYTES = 3_000_000;            // por imagem (o painel já reduz antes de enviar)
@@ -13,9 +13,9 @@ const SIGNATURES = {
 
 /** POST /api/media — corpo binário da imagem, Content-Type image/jpeg|png|webp. */
 export async function uploadMedia({ req, res, sql }) {
-  const account = await requireAccount(sql, req);
-  const [restaurant] = await sql`select id from restaurants where account_id = ${account.id}`;
-  if (!restaurant) throw new HttpError(404, 'Restaurante não encontrado.');
+  // Fotos do site e foto de perfil: quem edita o site ou o próprio gerente.
+  const member = await requireMember(sql, req, ['site', 'billing']);
+  const restaurant = member.restaurant;
 
   const contentType = String(req.headers['content-type'] ?? '').split(';')[0].trim();
   if (!SIGNATURES[contentType]) throw new HttpError(415, 'Envie uma imagem JPG, PNG ou WebP.');

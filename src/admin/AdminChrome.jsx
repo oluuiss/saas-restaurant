@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { allTables } from '../../shared/floor.js';
 import { languageMeta, orderedLanguages } from '../../shared/i18n.js';
 import { activePromotions } from '../../shared/pricing.js';
-import { PLANS } from '../../shared/plans.js';
 import { siteLabel, siteUrl } from '../../shared/slug.js';
 import { publishChecklist } from '../../shared/site.js';
 import Flag from '../Flag.jsx';
 import {
-  AlertIcon, BagIcon, BookIcon, CalendarIcon, CardIcon, CheckIcon, ChevronRightIcon, ClockIcon, CloseIcon, ExternalIcon, GlobeIcon,
-  ImageIcon, InfoIcon, LayoutIcon, LogoutIcon, MapPinIcon, MonitorIcon, PaletteIcon, PhoneIcon, RedoIcon, SaveIcon, SettingsIcon,
+  AlertIcon, ArrowLeftIcon, BookIcon, CalendarIcon, CheckIcon, ChevronRightIcon, ClockIcon, CloseIcon, ExternalIcon, GlobeIcon,
+  HomeIcon, ImageIcon, InfoIcon, LayoutIcon, LogoutIcon, MapPinIcon, MonitorIcon, PaletteIcon, PhoneIcon, RedoIcon, SaveIcon, SettingsIcon,
   SmartphoneIcon, StoreIcon, TableIcon, TagIcon, TruckIcon, UndoIcon,
 } from '../icons.jsx';
 import { LumenuMark } from '../ui.jsx';
@@ -19,8 +18,8 @@ import { ContactPanel, HoursPanel, InfoPanel, LanguagesPanel, LocationsPanel, Ph
 import AppearancePanel from './panels/AppearancePanel.jsx';
 import MenuPanel from './panels/MenuPanel.jsx';
 import PromotionsPanel from './panels/PromotionsPanel.jsx';
-import { DeliveryPanel, OrdersPanel, TablesPanel } from './panels/SalesPanels.jsx';
-import { BillingPanel, DomainPanel, ReservationsPanel } from './panels/AccountPanels.jsx';
+import { DeliveryPanel, TablesPanel } from './panels/SalesPanels.jsx';
+import { DomainPanel, ReservationsPanel } from './panels/AccountPanels.jsx';
 
 const PANELS = {
   restaurante: RestaurantPanel,
@@ -33,13 +32,11 @@ const PANELS = {
   promocoes: PromotionsPanel,
   fotos: PhotosPanel,
   idiomas: LanguagesPanel,
-  pedidos: OrdersPanel,
   delivery: DeliveryPanel,
   mesas: TablesPanel,
   planta: FloorPanel,
   reservas: ReservationsPanel,
   dominio: DomainPanel,
-  assinatura: BillingPanel,
 };
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
@@ -52,10 +49,9 @@ function hoursSummary(hours) {
   return same ? `${days} · ${open[0].from}–${open[0].to}` : days;
 }
 
-function groups(draft, meta, subscription, activity) {
+function groups(draft, meta) {
   const tables = allTables(draft);
   const promos = activePromotions(draft).length;
-  const pending = activity.openOrders + activity.openCalls;
   return [
     {
       title: 'Seu restaurante',
@@ -80,7 +76,6 @@ function groups(draft, meta, subscription, activity) {
     {
       title: 'Vendas',
       items: [
-        { id: 'pedidos', label: 'Pedidos e chamados', desc: pending ? `${plural(activity.openOrders, 'pedido aberto', 'pedidos abertos')} · ${plural(activity.openCalls, 'chamado', 'chamados')}` : 'Delivery e pedidos das mesas', Icon: BagIcon, color: '#34c759', count: pending },
         { id: 'delivery', label: 'Delivery', desc: draft.delivery.enabled ? 'Taxa, pedido mínimo e pagamento' : 'Desativado', Icon: TruckIcon, color: '#ff9f0a' },
         { id: 'mesas', label: 'Mesas', desc: draft.tableService.enabled ? `${plural(tables.length, 'mesa', 'mesas')} · pedido e atendente pela mesa` : 'Atendimento pela mesa desativado', Icon: StoreIcon, color: '#64d2ff' },
       ],
@@ -96,21 +91,18 @@ function groups(draft, meta, subscription, activity) {
           color: '#ff2d55',
           badge: !tables.length && 'Obrigatório',
         },
-        { id: 'reservas', label: 'Reservas', desc: draft.reservations.enabled ? 'Reservas recebidas e presença' : 'Desativadas', Icon: CalendarIcon, color: '#30b0c7' },
+        { id: 'reservas', label: 'Reservas online', desc: draft.reservations.enabled ? 'Duração, horários e antecedência' : 'Desativadas', Icon: CalendarIcon, color: '#30b0c7' },
       ],
     },
     {
-      title: 'Conta',
-      items: [
-        { id: 'dominio', label: 'Endereço do site', desc: siteLabel(meta.slug), Icon: GlobeIcon, color: '#007aff' },
-        { id: 'assinatura', label: 'Assinatura', desc: subscription ? `Plano ${PLANS[subscription.plan]?.name ?? subscription.plan}` : 'Plano e pagamentos', Icon: CardIcon, color: '#8e8e93' },
-      ],
+      title: 'Endereço',
+      items: [{ id: 'dominio', label: 'Endereço do site', desc: siteLabel(meta.slug), Icon: GlobeIcon, color: '#007aff' }],
     },
   ];
 }
 
 export function Sidebar() {
-  const { draft, meta, panel, setPanel, subscription, activity } = useAdmin();
+  const { draft, meta, panel, setPanel } = useAdmin();
   const scroller = useRef(null);
 
   useEffect(() => {
@@ -155,7 +147,7 @@ export function Sidebar() {
         </div>
       )}
 
-      {groups(draft, meta, subscription, activity).map((group) => (
+      {groups(draft, meta).map((group) => (
         <section key={group.title} className="adm-group">
           <h3>{group.title}</h3>
           <ul>
@@ -200,10 +192,11 @@ export function TopBar() {
   return (
     <header className="adm-top">
       <div className="adm-top__left">
-        <a href="/" className="adm-top__brand" title="Site do Lumenu"><span className="lx-brand__mark"><LumenuMark /></span></a>
+        <Link to="/painel" className="adm-top__back" title="Voltar ao painel" aria-label="Voltar ao painel"><ArrowLeftIcon size={18} /></Link>
+        <span className="adm-top__brand"><span className="lx-brand__mark"><LumenuMark /></span></span>
         <div className="adm-top__name">
           <strong>{draft.brand.name}</strong>
-          <small>Plano Ultimate</small>
+          <small>Editando o site</small>
         </div>
       </div>
 
@@ -255,7 +248,8 @@ export function TopBar() {
           </button>
           {menu && (
             <div className="adm-menu" role="menu" onClick={(e) => e.stopPropagation()}>
-              <div className="adm-menu__who"><strong>{account.name}</strong><small>{account.email}</small></div>
+              <div className="adm-menu__who"><strong>{account.name}</strong><small>{account.email ?? account.roleLabel}</small></div>
+              <button type="button" role="menuitem" onClick={() => navigate('/painel')}><HomeIcon size={16} /> Voltar ao painel</button>
               {meta.publishedAt && <a role="menuitem" href={publicUrl} target="_blank" rel="noopener noreferrer"><ExternalIcon size={16} /> Ver site publicado</a>}
               <button type="button" role="menuitem" onClick={() => navigate('/painel/configuracoes')}><SettingsIcon size={16} /> Configurações</button>
               <button type="button" role="menuitem" onClick={logout}><LogoutIcon size={16} /> Sair</button>

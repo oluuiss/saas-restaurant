@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { siteLabel } from '../../shared/slug.js';
 import { api } from '../lib/api.js';
 import { uploadImage } from '../lib/images.js';
 import { setIn } from '../lib/paths.js';
-import { AlertIcon, BellIcon, LockIcon, SparkIcon } from '../icons.jsx';
+import { AlertIcon, LockIcon, SparkIcon } from '../icons.jsx';
 import { useToast } from '../ui.jsx';
 import Site from '../site/Site.jsx';
 import { SiteProvider } from '../site/SiteContext.jsx';
@@ -12,9 +12,9 @@ import { AdminContext, useAdmin } from '../admin/AdminContext.jsx';
 import { PublishDialog, Sidebar, TopBar } from '../admin/AdminChrome.jsx';
 import { FloorEditor } from '../admin/FloorEditor.jsx';
 import TextStyleBar from '../admin/TextStyleBar.jsx';
-import SettingsPage from '../admin/SettingsPage.jsx';
 import '../admin/admin.css';
 import '../admin/admin-extra.css';
+import { STAFF_CODE_KEY } from '../ops/OpsContext.jsx';
 
 const SAVE_DELAY = 1500;
 const HISTORY_LIMIT = 150;
@@ -42,13 +42,10 @@ function Preview() {
 
 export default function AdminPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const settingsOpen = location.pathname.startsWith('/painel/configuracoes');
 
   const [status, setStatus] = useState('loading');
   const [loadError, setLoadError] = useState('');
   const [account, setAccount] = useState(null);
-  const [subscription, setSubscription] = useState(null);
   const [meta, setMeta] = useState(null);
   const [draft, setDraft] = useState(null);
   const [saveState, setSaveState] = useState('saved');
@@ -63,7 +60,6 @@ export default function AdminPage() {
   const [publishError, setPublishError] = useState('');
   const [publishDone, setPublishDone] = useState(false);
   const [activeText, setActiveText] = useState(null);
-  const [activity, setActivity] = useState({ openOrders: 0, newOrders: 0, openCalls: 0, lastOrder: null });
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [toast, showToast] = useToast();
@@ -74,17 +70,16 @@ export default function AdminPage() {
   const inFlight = useRef(null);
   const history = useRef({ past: [], future: [], last: 0, group: null });
 
-  // Carrega conta + rascunho. Sem sessão → login.
+  // Carrega quem está editando (gerente ou sócio) + rascunho. Sem sessão → login; sem permissão → painel.
   useEffect(() => {
-    document.title = 'Painel — Lumenu';
+    document.title = 'Editar site — Lumenu';
     let alive = true;
-    Promise.all([api.get('auth/me'), api.get('restaurant')])
+    Promise.all([api.get('team/me'), api.get('restaurant')])
       .then(([me, restaurant]) => {
         if (!alive) return;
-        if (!me.account) return navigate('/entrar', { replace: true });
+        if (!me.member) return navigate('/entrar', { replace: true });
         const { draft: doc, ...rest } = restaurant;
-        setAccount(me.account);
-        setSubscription(me.subscription);
+        setAccount(me.member);
         setMeta(rest);
         setDraft(doc);
         latest.current = doc;
@@ -95,6 +90,7 @@ export default function AdminPage() {
       .catch((err) => {
         if (!alive) return;
         if (err.status === 401) navigate('/entrar', { replace: true });
+        else if (err.status === 403 || err.status === 402) navigate('/painel', { replace: true });
         else {
           setLoadError(err.message);
           setStatus('error');
@@ -229,29 +225,6 @@ export default function AdminPage() {
     if (draft && !draft.floors.some((f) => f.id === floorId)) setFloorId(draft.floors[0]?.id ?? null);
   }, [draft, floorId]);
 
-  // Pedidos e chamados novos: confere a cada 15 s e avisa.
-  const lastSeen = useRef(null);
-  const refreshActivity = useCallback(() => {
-    api
-      .get('restaurant/activity')
-      .then((a) => {
-        const prev = lastSeen.current;
-        if (prev) {
-          if ((a.lastOrder ?? 0) > (prev.lastOrder ?? 0)) showToast(<><BellIcon size={16} /> Novo pedido #{a.lastOrder}</>, 5000);
-          else if (a.openCalls > prev.openCalls) showToast(<><BellIcon size={16} /> Uma mesa chamou o atendente</>, 5000);
-        }
-        lastSeen.current = a;
-        setActivity(a);
-      })
-      .catch(() => {});
-  }, [showToast]);
-  useEffect(() => {
-    if (status !== 'ready') return undefined;
-    refreshActivity();
-    const id = setInterval(refreshActivity, 15_000);
-    return () => clearInterval(id);
-  }, [status, refreshActivity]);
-
   // A barra de estilo fecha ao clicar fora do texto e da própria barra.
   useEffect(() => {
     if (!activeText) return undefined;
@@ -299,17 +272,17 @@ export default function AdminPage() {
   const logout = useCallback(async () => {
     if (dirty.current) await save();
     await api.post('auth/logout').catch(() => {});
-    navigate('/entrar', { replace: true });
-  }, [navigate, save]);
+    const code = account?.kind === 'staff' ? localStorage.getItem(STAFF_CODE_KEY) : null;
+    navigate(code ? `/equipe/${code}` : '/entrar', { replace: true });
+  }, [navigate, save, account]);
 
   const value = useMemo(
     () => ({
-      draft, meta, setMeta, account, setAccount, subscription, change, update, upload, editLang, setEditLang, panel, setPanel, openPanel,
+      draft, meta, setMeta, account, setAccount, change, update, upload, editLang, setEditLang, panel, setPanel, openPanel,
       device, setDevice, mobileView, setMobileView, floorId, setFloorId, selectedId, setSelectedId, saveState, save, undo, redo, canUndo, canRedo,
       openPublish, closePublish, publish, publishing, publishError, publishDone, logout, showToast, activeText, setActiveText, onTextFocus,
-      activity, refreshActivity,
     }),
-    [draft, meta, account, subscription, change, update, upload, editLang, panel, setPanel, openPanel, device, mobileView, floorId, selectedId, saveState, save, undo, redo, canUndo, canRedo, openPublish, closePublish, publish, publishing, publishError, publishDone, logout, showToast, activeText, onTextFocus, activity, refreshActivity],
+    [draft, meta, account, change, update, upload, editLang, panel, setPanel, openPanel, device, mobileView, floorId, selectedId, saveState, save, undo, redo, canUndo, canRedo, openPublish, closePublish, publish, publishing, publishError, publishDone, logout, showToast, activeText, onTextFocus],
   );
 
   if (status === 'loading') {
@@ -330,21 +303,17 @@ export default function AdminPage() {
 
   return (
     <AdminContext.Provider value={value}>
-      {settingsOpen ? (
-        <SettingsPage />
-      ) : (
-        <div className={`lx-app adm ${panel === 'planta' ? 'is-floor' : ''}`} data-view={mobileView}>
-          <TopBar />
-          <div className="adm__body">
-            <aside className="adm__side" aria-label="Configurações do site">
-              <Sidebar />
-            </aside>
-            <main className="adm__main">{panel === 'planta' ? <FloorEditor /> : <Preview />}</main>
-          </div>
-          {activeText && panel !== 'planta' && <TextStyleBar />}
-          {publishOpen && <PublishDialog />}
+      <div className={`lx-app adm ${panel === 'planta' ? 'is-floor' : ''}`} data-view={mobileView}>
+        <TopBar />
+        <div className="adm__body">
+          <aside className="adm__side" aria-label="Configurações do site">
+            <Sidebar />
+          </aside>
+          <main className="adm__main">{panel === 'planta' ? <FloorEditor /> : <Preview />}</main>
         </div>
-      )}
+        {activeText && panel !== 'planta' && <TextStyleBar />}
+        {publishOpen && <PublishDialog />}
+      </div>
       {toast}
     </AdminContext.Provider>
   );

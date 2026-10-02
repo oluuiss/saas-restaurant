@@ -1,155 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { allTables } from '../../../shared/floor.js';
 import { tr } from '../../../shared/i18n.js';
-import { BRAND_NAMES } from '../../../shared/payments.js';
 import { siteUrl } from '../../../shared/slug.js';
-import { api } from '../../lib/api.js';
-import { AlertIcon, BagIcon, BellIcon, CheckIcon, CopyIcon, ExternalIcon, LayoutIcon, MapPinIcon, PhoneIcon, RotateIcon, StoreIcon, TruckIcon } from '../../icons.jsx';
+import { AlertIcon, CopyIcon, ExternalIcon, LayoutIcon, PrinterIcon } from '../../icons.jsx';
 import { parseMoney } from '../../site/editable.jsx';
 import { Switch } from '../../ui.jsx';
 import { useAdmin } from '../AdminContext.jsx';
 import { PanelHeader, Section } from '../fields.jsx';
-
-const BRL = (cents) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((cents ?? 0) / 100);
-
-function ago(value) {
-  const minutes = Math.max(0, Math.round((Date.now() - new Date(value).getTime()) / 60000));
-  if (minutes < 1) return 'agora';
-  if (minutes < 60) return `há ${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  return `há ${hours}h${String(minutes % 60).padStart(2, '0')}`;
-}
-
-const STATUS = {
-  received: { label: 'Novo', tone: 'warning' },
-  preparing: { label: 'Em preparo', tone: 'info' },
-  out_for_delivery: { label: 'Saiu para entrega', tone: 'info' },
-  ready: { label: 'Pronto', tone: 'info' },
-  delivered: { label: 'Entregue', tone: 'success' },
-  canceled: { label: 'Cancelado', tone: 'danger' },
-};
-
-/** Próximo passo de cada pedido. */
-function nextStep(order) {
-  if (order.status === 'received') return { status: 'preparing', label: 'Aceitar e preparar' };
-  if (order.status === 'preparing') return order.type === 'delivery' ? { status: 'out_for_delivery', label: 'Saiu para entrega' } : { status: 'ready', label: 'Pronto para servir' };
-  if (order.status === 'out_for_delivery' || order.status === 'ready') return { status: 'delivered', label: order.type === 'delivery' ? 'Entregue' : 'Servido na mesa' };
-  return null;
-}
-
-const PAYMENT = { on_delivery: 'Pagar na entrega', online: 'Pago online', at_table: 'Pagar na mesa' };
-
-export function OrdersPanel() {
-  const { draft, refreshActivity, showToast } = useAdmin();
-  const [scope, setScope] = useState('active');
-  const [data, setData] = useState({ status: 'loading', orders: [], calls: [] });
-
-  const load = useCallback(() => {
-    api
-      .get(`restaurant/orders?scope=${scope}`)
-      .then((d) => setData({ status: 'ready', ...d }))
-      .catch((err) => setData({ status: 'error', orders: [], calls: [], message: err.message }));
-  }, [scope]);
-
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 8000);
-    return () => clearInterval(id);
-  }, [load]);
-
-  const act = async (path, body) => {
-    try {
-      await api.post(path, body);
-      load();
-      refreshActivity();
-    } catch (err) {
-      showToast(err.message);
-    }
-  };
-
-  const name = (field) => tr(field, draft.defaultLanguage);
-
-  return (
-    <>
-      <PanelHeader title="Pedidos e chamados" description="Pedidos de delivery, pedidos feitos pelas mesas e mesas chamando atendente. Atualiza sozinho." />
-      <div className="lx-seg" role="group">
-        <button type="button" aria-pressed={scope === 'active'} onClick={() => setScope('active')}>Em aberto</button>
-        <button type="button" aria-pressed={scope === 'today'} onClick={() => setScope('today')}>Últimas 24h</button>
-      </div>
-
-      {data.calls.length > 0 && (
-        <Section title="Mesas chamando">
-          <ul className="adm-calls">
-            {data.calls.map((c) => (
-              <li key={c.id}>
-                <span className="adm-calls__icon"><BellIcon size={16} /></span>
-                <span><strong>Mesa {c.table}</strong><small>{ago(c.createdAt)}</small></span>
-                <button type="button" className="lx-btn lx-btn--secondary lx-btn--sm" onClick={() => act(`restaurant/calls/${c.id}/done`)}><CheckIcon size={14} /> Atendido</button>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      {data.status === 'error' && <div className="lx-alert lx-alert--error"><AlertIcon size={18} />{data.message}</div>}
-      {data.status === 'ready' && !data.orders.length && (
-        <div className="adm-empty">
-          <BagIcon size={22} />
-          <strong>{scope === 'active' ? 'Nenhum pedido em aberto' : 'Nenhum pedido nas últimas 24h'}</strong>
-          <span>Pedidos de delivery e das mesas aparecem aqui na hora.</span>
-        </div>
-      )}
-
-      <div className="adm-stack">
-        {data.orders.map((o) => {
-          const next = nextStep(o);
-          const st = STATUS[o.status];
-          return (
-            <article key={o.id} className={`adm-order is-${o.status}`}>
-              <header className="adm-order__head">
-                <span className="adm-order__num">#{o.number}</span>
-                <span className="adm-order__type">{o.type === 'delivery' ? <><TruckIcon size={14} /> Delivery</> : <><StoreIcon size={14} /> Mesa {o.table}</>}</span>
-                <span className={`lx-badge lx-badge--${st.tone}`}>{st.label}</span>
-                <small className="adm-order__time">{ago(o.createdAt)}</small>
-              </header>
-              <ul className="adm-order__items">
-                {o.items.map((i) => (
-                  <li key={i.itemId}><span>{i.qty}×</span> {name(i.name)} <em>{BRL(i.total)}</em></li>
-                ))}
-              </ul>
-              {o.notes && <p className="adm-order__notes">“{o.notes}”</p>}
-              {(o.name || o.phone) && (
-                <p className="adm-order__line"><PhoneIcon size={13} /> {o.name}{o.phone && <> · <a href={`tel:${o.phone.replace(/[^\d+]/g, '')}`}>{o.phone}</a></>}</p>
-              )}
-              {o.address && (
-                <p className="adm-order__line"><MapPinIcon size={13} /> {[o.address.street, o.address.complement, o.address.district, o.address.city].filter(Boolean).join(', ')}{o.address.reference && ` (${o.address.reference})`}</p>
-              )}
-              <div className="adm-order__total">
-                <span>
-                  {PAYMENT[o.paymentMethod]}
-                  {o.cardLast4 && ` · ${BRAND_NAMES[o.cardBrand] ?? 'Cartão'} ${o.cardLast4}`}
-                  {o.coupon && ` · cupom ${o.coupon}`}
-                  {o.discount > 0 && ` · −${BRL(o.discount)}`}
-                </span>
-                <strong>{BRL(o.total)}</strong>
-              </div>
-              {(next || !['delivered', 'canceled'].includes(o.status)) && (
-                <div className="adm-actions">
-                  {next && <button type="button" className="lx-btn lx-btn--primary lx-btn--sm" onClick={() => act(`restaurant/orders/${o.id}/status`, { status: next.status })}>{next.label}</button>}
-                  {!['delivered', 'canceled'].includes(o.status) && (
-                    <button type="button" className="lx-btn lx-btn--plain lx-btn--sm adm-danger-text" onClick={() => window.confirm(`Cancelar o pedido #${o.number}?`) && act(`restaurant/orders/${o.id}/status`, { status: 'canceled' })}>Cancelar</button>
-                  )}
-                </div>
-              )}
-              {o.status === 'canceled' && o.canceledBy === 'customer' && <p className="lx-hint" style={{ margin: 0 }}>Cancelado pelo cliente.</p>}
-            </article>
-          );
-        })}
-      </div>
-      <button type="button" className="lx-btn lx-btn--plain lx-btn--sm" onClick={load}><RotateIcon size={14} /> Atualizar agora</button>
-    </>
-  );
-}
 
 function MoneyField({ label, path, hint }) {
   const { draft, update } = useAdmin();
@@ -255,6 +113,12 @@ export function TablesPanel() {
         )}
       </Section>
 
+      {tables.length > 0 && (
+        <Link to="/painel/mesas/qrcodes" className="adm-link-row">
+          <span><strong>Imprimir QR Codes das mesas</strong><small>O cliente escaneia para pedir e chamar o garçom; a equipe escaneia para ocupar a mesa e fechar a conta.</small></span>
+          <PrinterIcon size={18} />
+        </Link>
+      )}
       <Section title={`Números das mesas (${tables.length})`} aside={<button type="button" className="lx-btn lx-btn--plain lx-btn--sm" onClick={() => setPanel('planta')}><LayoutIcon size={14} /> Planta</button>}>
         {!tables.length ? (
           <p className="lx-hint" style={{ margin: 0 }}>Desenhe as mesas na planta do salão para elas aparecerem aqui.</p>
